@@ -4,8 +4,23 @@ import type { NavigationConfig } from "./schema";
 // Figma exports). Filters are URL search params on /shop.
 export const navigationConfig = {
   topBar: {
-    left: ["Islandwide Delivery · Free over Rs 5,000", "Cash on Delivery"],
-    right: ["100% Authentic Oils", "Bank Transfer"],
+    left: [
+      {
+        label: "Islandwide Delivery · Free over Rs 5,000",
+        short: "Islandwide Delivery",
+        icon: "truck",
+      },
+      { label: "Cash on Delivery", icon: "cash" },
+    ],
+    center: [
+      { label: "100% Authentic Oils", icon: "shield" },
+      { label: "Bank Transfer", icon: "bank" },
+    ],
+  },
+
+  whatsappCta: {
+    nav: "Need help choosing? Chat on WhatsApp",
+    float: "Need help? Chat with us",
   },
 
   mainNav: [

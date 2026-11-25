@@ -1,27 +1,27 @@
-import { Logo } from "@/components/layout/logo";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { featuresConfig, navigationConfig, siteConfig } from "@/config";
+import { BottomNav } from "@/components/layout/bottom-nav";
+import { Footer } from "@/components/layout/footer";
+import { Header } from "@/components/layout/header";
+import { TopBar } from "@/components/layout/top-bar";
+import { WhatsappFloat } from "@/components/layout/whatsapp-float";
+import { waLink } from "@/lib/whatsapp/link";
 
-// Placeholder shell. Phase 1 replaces it with the top bar, header, mega menu,
-// footer, mobile bottom nav and WhatsApp float from the Figma exports.
 export default function StorefrontLayout({ children }: LayoutProps<"/">) {
   return (
     <>
-      <header className="bg-brand-deep text-brand-foreground">
-        <div className="container-page flex h-20 items-center justify-between">
-          <Logo />
-          {featuresConfig.darkMode && <ThemeToggle />}
-        </div>
-      </header>
-      <main className="flex-1">{children}</main>
-      <footer className="bg-brand-deep text-brand-foreground/70">
-        <div className="container-page py-10 text-sm">
-          <p className="max-w-sm">{navigationConfig.footer.blurb}</p>
-          <p className="mt-6">
-            © {siteConfig.name} · {siteConfig.domain}
-          </p>
-        </div>
-      </footer>
+      <a
+        href="#main"
+        className="sr-only z-50 rounded-full bg-gold px-4 py-2 font-semibold text-brand-deep focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+      >
+        Skip to content
+      </a>
+      <TopBar />
+      <Header />
+      <main id="main" className="flex-1">
+        {children}
+      </main>
+      <Footer />
+      <WhatsappFloat />
+      <BottomNav whatsappHref={waLink()} />
     </>
   );
 }

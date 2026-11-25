@@ -106,10 +106,23 @@ export const whatsappConfigSchema = z.object({
   }),
 });
 
+const topBarItem = z.object({
+  label: z.string().min(1),
+  short: z.string().min(1).optional(),
+  icon: z.enum(["truck", "cash", "shield", "bank"]),
+});
+
 export const navigationConfigSchema = z.object({
+  // Desktop: `left` at the start, `center` in the middle, then the phone and
+  // Track Order. Mobile shows `left` only, using `short` when set.
   topBar: z.object({
-    left: z.array(z.string().min(1)).readonly(),
-    right: z.array(z.string().min(1)).readonly(),
+    left: z.array(topBarItem).min(1).readonly(),
+    center: z.array(topBarItem).readonly(),
+  }),
+  // WhatsApp call-to-action labels in the nav row and the floating button.
+  whatsappCta: z.object({
+    nav: z.string().min(1),
+    float: z.string().min(1),
   }),
   mainNav: z
     .array(link.extend({ badge: z.string().optional() }))

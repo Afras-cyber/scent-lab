@@ -34,6 +34,7 @@
   --brand-foreground: #f6f4ee;
   --gold: #bda23d;
   --whatsapp: #16a34a;
+  --whatsapp-soft: #e8f8ee;
 
   --radius: 1rem;
 }
@@ -85,6 +86,7 @@
   --color-brand-foreground: var(--brand-foreground);
   --color-gold: var(--gold);
   --color-whatsapp: var(--whatsapp);
+  --color-whatsapp-soft: var(--whatsapp-soft);
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-playfair), ui-serif, Georgia, serif;
@@ -93,6 +95,60 @@
   --radius-md: calc(var(--radius) - 4px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* Enter/exit animations for Radix dialogs, sheets and menus (data-state). */
+@theme {
+  --ease-brand: cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-fade-in: fade-in 200ms var(--ease-brand);
+  --animate-fade-out: fade-out 150ms ease-in;
+  --animate-slide-in-left: slide-in-left 300ms var(--ease-brand);
+  --animate-slide-out-left: slide-out-left 200ms ease-in;
+  --animate-slide-in-right: slide-in-right 300ms var(--ease-brand);
+  --animate-slide-out-right: slide-out-right 200ms ease-in;
+  --animate-slide-in-bottom: slide-in-bottom 300ms var(--ease-brand);
+  --animate-slide-out-bottom: slide-out-bottom 200ms ease-in;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes slide-in-left {
+    from {
+      transform: translateX(-100%);
+    }
+  }
+  @keyframes slide-out-left {
+    to {
+      transform: translateX(-100%);
+    }
+  }
+  @keyframes slide-in-right {
+    from {
+      transform: translateX(100%);
+    }
+  }
+  @keyframes slide-out-right {
+    to {
+      transform: translateX(100%);
+    }
+  }
+  @keyframes slide-in-bottom {
+    from {
+      transform: translateY(100%);
+    }
+  }
+  @keyframes slide-out-bottom {
+    to {
+      transform: translateY(100%);
+    }
+  }
 }
 
 /* Dark green gradient used by hero and featured cards. */
@@ -141,5 +197,15 @@
 
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-ring;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 1ms !important;
+      transition-duration: 1ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
