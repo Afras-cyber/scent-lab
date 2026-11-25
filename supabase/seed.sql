@@ -32,8 +32,7 @@ insert into public.delivery_zones (district, fee_lkr, estimated_days, sort_order
 -- Runtime settings (override src/config defaults).
 insert into public.site_settings (key, value, is_public) values
   ('free_delivery_threshold_lkr', '5000', true),
-  ('bank_transfer', '{"bankName": "", "accountName": "", "accountNumber": "", "branch": ""}', true),
-  ('notification_events', '{"order_placed": true, "payment_received": true}', false);
+  ('bank_transfer', '{"bankName": "", "accountName": "", "accountNumber": "", "branch": ""}', true);
 
 insert into public.collections (slug, name, description, image_path, sort_order) values
   ('oud', 'Oud Collection', 'Deep, smoky and regal — our signature ouds.', '/images/collections/Bottle.png', 1),

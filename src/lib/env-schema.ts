@@ -27,13 +27,7 @@ export const serverEnvSchema = publicEnvSchema.extend({
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
   TURNSTILE_SECRET_KEY: z.string().min(1).optional(),
 
-  // later: Phase 3B (WhatsApp Cloud API)
-  WHATSAPP_PHONE_NUMBER_ID: z.string().regex(/^\d+$/).optional(),
-  WHATSAPP_BUSINESS_ACCOUNT_ID: z.string().regex(/^\d+$/).optional(),
-  WHATSAPP_ACCESS_TOKEN: z.string().min(1).optional(),
-  WHATSAPP_APP_SECRET: z.string().min(1).optional(),
-  WHATSAPP_WEBHOOK_VERIFY_TOKEN: secret.optional(),
-  CRON_SECRET: secret.optional(),
+  // later: Phase 3 (signed invoice/receipt links shared over WhatsApp)
   INVOICE_LINK_SECRET: secret.optional(),
 
   // later: Phase 1 (on-demand revalidation)

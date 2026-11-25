@@ -1,6 +1,6 @@
 -- RLS: the browser (anon) can read the active catalog and nothing else.
 begin;
-select plan(24);
+select plan(22);
 
 select is(
   (select count(*) from pg_tables where schemaname = 'public' and not rowsecurity),
@@ -22,8 +22,6 @@ select throws_ok('select 1 from public.order_items', '42501', null, 'anon cannot
 select throws_ok('select 1 from public.order_events', '42501', null, 'anon cannot read order_events');
 select throws_ok('select 1 from public.payments', '42501', null, 'anon cannot read payments');
 select throws_ok('select 1 from public.invoices', '42501', null, 'anon cannot read invoices');
-select throws_ok('select 1 from public.notification_outbox', '42501', null, 'anon cannot read the outbox');
-select throws_ok('select 1 from public.whatsapp_messages', '42501', null, 'anon cannot read WhatsApp logs');
 select throws_ok('select 1 from public.newsletter_subscribers', '42501', null, 'anon cannot read subscribers');
 select throws_ok('select 1 from public.admin_users', '42501', null, 'anon cannot read admin users');
 select throws_ok(
@@ -68,7 +66,7 @@ select is(
 
 -- Server-only functions.
 select throws_ok(
-  $$select public.create_order('k', 'n', '+94771234567', 'a', 'c', 'Colombo', 'cod', false, '[]')$$,
+  $$select public.create_order('k', 'n', '+94771234567', 'a', 'c', 'Colombo', 'cod', '[]')$$,
   '42501', null, 'anon cannot call create_order'
 );
 select throws_ok(

@@ -21,14 +21,15 @@ describe("env schema", () => {
 
   it("treats empty values as unset", () => {
     expect(
-      parseServerEnv({ ...base, AUTH_SECRET: "", CRON_SECRET: "" }).success,
+      parseServerEnv({ ...base, AUTH_SECRET: "", REVALIDATE_SECRET: "" })
+        .success,
     ).toBe(true);
   });
 
   it("rejects short secrets when they are set", () => {
-    expect(parseServerEnv({ ...base, CRON_SECRET: "short" }).success).toBe(
-      false,
-    );
+    expect(
+      parseServerEnv({ ...base, REVALIDATE_SECRET: "short" }).success,
+    ).toBe(false);
   });
 
   it("public env ignores server secrets", () => {

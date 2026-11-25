@@ -10,9 +10,13 @@ describe("src/config", () => {
 
   it("strict mode reports placeholders by path", () => {
     const problems = validateConfig(allConfigs, { strict: true });
-    // Remove this expectation once the client supplies the real values.
-    expect(problems).toContain(
-      "site.contact.whatsapp.number: placeholder value must be replaced before launch",
+    // Remove these expectations once the client supplies the real values.
+    expect(problems).toEqual(
+      expect.arrayContaining([
+        "site.contact.address.line1: placeholder value must be replaced before launch",
+        "commerce.bankTransfer.bankName: placeholder value must be replaced before launch",
+        "commerce.bankTransfer.accountNumber: placeholder value must be replaced before launch",
+      ]),
     );
   });
 
@@ -51,22 +55,6 @@ describe("src/config", () => {
       problems.some((p) => p.startsWith("site.contact.whatsapp.number")),
     ).toBe(true);
   });
-
-  it("requires one backoff entry per retry attempt", () => {
-    const notifications = {
-      ...allConfigs.notifications,
-      retry: { maxAttempts: 6, backoffSeconds: [30] },
-    };
-    const problems = validateConfig(
-      { ...allConfigs, notifications },
-      { strict: false },
-    );
-    expect(
-      problems.some((p) =>
-        p.includes("backoffSeconds needs one entry per attempt"),
-      ),
-    ).toBe(true);
-  });
 });
 
 describe("findPlaceholders", () => {
@@ -77,7 +65,8 @@ describe("findPlaceholders", () => {
         b: { c: "+94 76 776 ****", d: ["ok", "94767760000"] },
         e: "fine",
         f: 3,
+        g: "Sample Bank PLC",
       }),
-    ).toEqual(["a", "b.c", "b.d[1]"]);
+    ).toEqual(["a", "b.c", "b.d[1]", "g"]);
   });
 });

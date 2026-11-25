@@ -22,7 +22,6 @@ create function public.create_order(
   p_city text,
   p_district text,
   p_payment_method public.payment_method,
-  p_whatsapp_opt_in boolean,
   p_items jsonb,
   p_email text default null,
   p_notes text default null
@@ -139,14 +138,10 @@ begin
   -- 6. Order, item snapshots and first timeline event.
   insert into public.orders (
     customer_name, phone_e164, email, address_line, city, district, notes,
-    whatsapp_opt_in, whatsapp_opt_in_at, whatsapp_opt_in_source,
     payment_method, payment_status, subtotal_lkr, delivery_fee_lkr, total_lkr, idempotency_key
   ) values (
     trim(p_customer_name), p_phone_e164, nullif(lower(trim(p_email)), ''), trim(p_address_line), trim(p_city),
     p_district, nullif(trim(p_notes), ''),
-    coalesce(p_whatsapp_opt_in, false),
-    case when p_whatsapp_opt_in then now() end,
-    case when p_whatsapp_opt_in then 'checkout' end,
     p_payment_method,
     case when p_payment_method = 'bank_transfer' then 'awaiting_verification' else 'unpaid' end::public.payment_status,
     v_subtotal, v_fee, v_subtotal + v_fee, p_idempotency_key
@@ -169,15 +164,7 @@ begin
   from unnest(v_ids, v_qtys) as l (id, qty)
   where v.id = l.id;
 
-  -- 8. Queue the WhatsApp invoice in the same transaction. The worker checks
-  -- whether the event is enabled before sending.
-  if new_order.whatsapp_opt_in then
-    insert into public.notification_outbox (order_id, event)
-    values (new_order.id, 'order_placed')
-    on conflict (order_id, event, channel) do nothing;
-  end if;
-
-  -- 9. Result
+  -- 8. Result
   return jsonb_build_object(
     'order_id', new_order.id,
     'code', new_order.code,
@@ -193,8 +180,7 @@ $$;
 -- record_payment
 -- ---------------------------------------------------------------------------
 -- Called by an admin server action after requireAdmin(). Inserts the payment,
--- marks the order paid once payments cover the total, and queues the
--- payment_received receipt. Returns {"payment_id", "payment_status", "paid_lkr"}.
+-- and marks the order paid once payments cover the total. Returns {"payment_id", "payment_status", "paid_lkr"}.
 
 create function public.record_payment(
   p_order_id uuid,
@@ -241,22 +227,16 @@ begin
     update public.orders set payment_status = v_status where id = p_order_id;
   end if;
 
-  if v_status = 'paid' and target.whatsapp_opt_in then
-    insert into public.notification_outbox (order_id, event)
-    values (p_order_id, 'payment_received')
-    on conflict (order_id, event, channel) do nothing;
-  end if;
-
   return jsonb_build_object('payment_id', v_payment_id, 'payment_status', v_status, 'paid_lkr', v_paid);
 end;
 $$;
 
 -- Only the server (service_role) may call these.
-revoke all on function public.create_order(text, text, text, text, text, text, public.payment_method, boolean, jsonb, text, text)
+revoke all on function public.create_order(text, text, text, text, text, text, public.payment_method, jsonb, text, text)
   from public, anon, authenticated;
 revoke all on function public.record_payment(uuid, integer, public.payment_method, uuid, text, text)
   from public, anon, authenticated;
-grant execute on function public.create_order(text, text, text, text, text, text, public.payment_method, boolean, jsonb, text, text)
+grant execute on function public.create_order(text, text, text, text, text, text, public.payment_method, jsonb, text, text)
   to service_role;
 grant execute on function public.record_payment(uuid, integer, public.payment_method, uuid, text, text)
   to service_role;

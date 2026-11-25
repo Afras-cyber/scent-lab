@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-AYAD (ayadscentlab.com) is an online perfume shop for Sri Lanka (LKR, Cash on Delivery or bank transfer, island-wide delivery). Customers have **no accounts**: they check out with name, phone and address, and track orders with Order ID + phone. Only staff log in, at `/admin`. WhatsApp is the main channel: click-to-chat `wa.me` links, plus automatic Cloud API template messages with a PDF invoice or receipt on **order placed** and **payment received**.
+AYAD (ayadscentlab.com) is an online perfume shop for Sri Lanka (LKR, Cash on Delivery or bank transfer, island-wide delivery). Customers have **no accounts**: they check out with name, phone and address, and track orders with Order ID + phone. Only staff log in, at `/admin`. WhatsApp is the main channel, as **click-to-chat only**: `wa.me` links open WhatsApp Web or the app with a prefilled message. There is **no WhatsApp Business API / Cloud API** (this overrides the spec), so nothing is sent automatically. Staff WhatsApp tools (sending invoice/receipt links to customers) will be designed with the admin panel.
 
 The full spec is `docs/AYAD_PROJECT_STRUCTURE.md`. Read the relevant section before building a feature; it covers the folder layout, database schema, RLS rules, checkout, tracking and WhatsApp flows, and the security checklist. Note that `/docs` is in `.gitignore`, so it exists only locally.
 
@@ -32,9 +32,9 @@ npm run db:lint          # plpgsql_check on SQL functions
 npx supabase test db     # pgTAP tests in supabase/tests/database (RLS, create_order)
 ```
 
-Local setup: copy `.env.example` to `.env.local` and fill in `PUBLISHABLE_KEY` and `SECRET_KEY` from `supabase:status`. Playwright end-to-end tests (`tests/e2e/`) are not set up yet.
+Local setup: copy `.env.example` to `.env.local` and fill in `PUBLISHABLE_KEY` and `SECRET_KEY` from `supabase:status`. Develop against local Supabase: the hosted project has an older, out-of-sync schema (remote-only migrations, no table grants) and must not be used until it is synced. Playwright end-to-end tests (`tests/e2e/`) are not set up yet.
 
-Build switches: `ALLOW_CONFIG_PLACEHOLDERS=true` lets `next build` pass with `TODO`/`****` in `src/config` (CI does this until the client supplies real values); `SKIP_ENV_VALIDATION=true` skips the env check. Husky runs lint-staged on commit.
+Build switches: `ALLOW_CONFIG_PLACEHOLDERS=true` lets `next build` pass with `TODO`/`****` or the mock values (address, bank details; marked `// MOCK`, listed in `KNOWN_PLACEHOLDER_VALUES`) in `src/config` (CI does this until the client supplies real values); `SKIP_ENV_VALIDATION=true` skips the env check. Husky runs lint-staged on commit.
 
 ## Version-specific gotchas
 
@@ -68,16 +68,12 @@ Build switches: `ALLOW_CONFIG_PLACEHOLDERS=true` lets `next build` pass with `TO
   - Forms use React Hook Form with the same Zod schema on client and server.
   - Filters live in URL search params.
 - **The client is never trusted.** Prices, stock, delivery fees and totals are always recomputed in the Postgres `create_order` RPC. It is `security definer` and only the service role may call it. The RPC locks variant rows and uses an idempotency key.
-- **RLS is deny by default** on every table. The anonymous role can read only active catalog rows, approved reviews and public settings. Orders, payments, invoices, the outbox and WhatsApp logs are reachable only through server code using the service role.
+- **RLS is deny by default** on every table. The anonymous role can read only active catalog rows, approved reviews and public settings. Orders, payments and invoices are reachable only through server code using the service role.
 - **Admin auth:** NextAuth v5 with the Credentials provider against `admin_users`, using JWT sessions with a role claim. `requireAdmin()` must run in the admin layout **and in every admin server action**.
-- **Notifications are an outbox.**
-  - The order and payment transactions insert a `notification_outbox` row, keyed uniquely on `(order_id, event, channel)`.
-  - A cron worker (`/api/cron/notifications`, protected by `CRON_SECRET`) renders the PDF with `@react-pdf/renderer` on the Node runtime, uploads it to WhatsApp media, then sends the template and retries with backoff.
-  - The webhook verifies `X-Hub-Signature-256` on the raw body.
-  - Messages go only to customers who opted in.
+- **WhatsApp is links, not a pipeline.** There is no outbox, cron worker, webhook or opt-in. Customer-to-shop links use the texts in `config/whatsapp.config.ts` and the number in `site.config.ts`. Invoice/receipt PDFs (`@react-pdf/renderer`, Node runtime) will be shared as signed links (`INVOICE_LINK_SECRET`) inside wa.me messages.
 - **Config vs runtime vs secrets:**
-  - Brand, contact, WhatsApp number, navigation, notification events and feature flags live in `src/config/*.ts` (`as const satisfies`, validated by `config/schema.ts`). Never hard-code these values in components.
-  - Staff-editable overrides (delivery fees, bank details, event toggles) live in the `site_settings` table, which takes precedence over config.
+  - Brand, contact, WhatsApp number and message texts, navigation and feature flags live in `src/config/*.ts` (`as const satisfies`, validated by `config/schema.ts`). Never hard-code these values in components.
+  - Staff-editable overrides (delivery fees, bank details) live in the `site_settings` table, which takes precedence over config.
   - Secrets live only in `.env`, validated by `src/lib/env.ts`.
   - The production build must fail while placeholders (`TODO`, `****`) remain in config.
 - The logo is temporary text ("AYAD", wide letter-spacing) and lives in one file: `components/layout/logo.tsx`.

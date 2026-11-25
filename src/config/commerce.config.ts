@@ -11,10 +11,12 @@ export const commerceConfig = {
   freeDeliveryThresholdLkr: 5000,
   paymentMethods: ["cod", "bank_transfer"],
   bankTransfer: {
-    bankName: "TODO", // TODO: from client
-    accountName: "TODO",
-    accountNumber: "TODO",
-    branch: "TODO",
+    // MOCK until the client supplies real details. The production build
+    // fails while these remain (see KNOWN_PLACEHOLDER_VALUES in schema.ts).
+    bankName: "Sample Bank PLC", // MOCK
+    accountName: "AYAD Scent Lab (Pvt) Ltd", // MOCK
+    accountNumber: "0000 0000 0000", // MOCK
+    branch: "Colombo Main", // MOCK
   },
   deliveryEstimate: { colombo: "1–2 days", other: "2–4 days" },
 } as const satisfies CommerceConfig;

@@ -33,10 +33,11 @@ export const siteConfig = {
     email: "hello@ayadscentlab.com",
     hours: "Daily 10am – 10pm",
     // Printed on invoices and receipts.
+    // MOCK until the client supplies the real address.
     address: {
-      line1: "TODO",
-      city: "TODO",
-      district: "TODO",
+      line1: "No. 1, Sample Road", // MOCK
+      city: "Colombo 03", // MOCK
+      district: "Colombo", // MOCK
       country: "Sri Lanka",
     },
   },

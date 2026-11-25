@@ -109,26 +109,6 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
-                },"notification_outbox": {
-                  Row: {
-                    "attempts": number,"channel": string,"created_at": string,"event": Database["public"]['Enums']["notification_event"],"id": string,"last_error": string | null,"locked_at": string | null,"next_attempt_at": string,"order_id": string,"provider_message_id": string | null,"sent_at": string | null,"status": Database["public"]['Enums']["notification_status"],"updated_at": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "attempts"?: number,"channel"?: string,"created_at"?: string,"event": Database["public"]['Enums']["notification_event"],"id"?: string,"last_error"?: string | null,"locked_at"?: string | null,"next_attempt_at"?: string,"order_id": string,"provider_message_id"?: string | null,"sent_at"?: string | null,"status"?: Database["public"]['Enums']["notification_status"],"updated_at"?: string
-                  }
-                  Update: {
-                    "attempts"?: number,"channel"?: string,"created_at"?: string,"event"?: Database["public"]['Enums']["notification_event"],"id"?: string,"last_error"?: string | null,"locked_at"?: string | null,"next_attempt_at"?: string,"order_id"?: string,"provider_message_id"?: string | null,"sent_at"?: string | null,"status"?: Database["public"]['Enums']["notification_status"],"updated_at"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "notification_outbox_order_id_fkey"
-      columns: ["order_id"]
-isOneToOne: false
-      referencedRelation: "orders"
-      referencedColumns: ["id"]
-    }
-                  ]
                 },"order_events": {
                   Row: {
                     "created_at": string,"created_by": string | null,"id": string,"note": string | null,"order_id": string,"status": Database["public"]['Enums']["order_status"]
@@ -183,14 +163,14 @@ isOneToOne: false
                   ]
                 },"orders": {
                   Row: {
-                    "address_line": string,"city": string,"code": string,"created_at": string,"customer_name": string,"delivery_fee_lkr": number,"district": string,"email": string | null,"id": string,"idempotency_key": string | null,"notes": string | null,"payment_method": Database["public"]['Enums']["payment_method"],"payment_status": Database["public"]['Enums']["payment_status"],"phone_e164": string,"status": Database["public"]['Enums']["order_status"],"subtotal_lkr": number,"total_lkr": number,"updated_at": string,"whatsapp_opt_in": boolean,"whatsapp_opt_in_at": string | null,"whatsapp_opt_in_source": string | null
+                    "address_line": string,"city": string,"code": string,"created_at": string,"customer_name": string,"delivery_fee_lkr": number,"district": string,"email": string | null,"id": string,"idempotency_key": string | null,"notes": string | null,"payment_method": Database["public"]['Enums']["payment_method"],"payment_status": Database["public"]['Enums']["payment_status"],"phone_e164": string,"status": Database["public"]['Enums']["order_status"],"subtotal_lkr": number,"total_lkr": number,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "address_line": string,"city": string,"code"?: string,"created_at"?: string,"customer_name": string,"delivery_fee_lkr": number,"district": string,"email"?: string | null,"id"?: string,"idempotency_key"?: string | null,"notes"?: string | null,"payment_method": Database["public"]['Enums']["payment_method"],"payment_status"?: Database["public"]['Enums']["payment_status"],"phone_e164": string,"status"?: Database["public"]['Enums']["order_status"],"subtotal_lkr": number,"total_lkr": number,"updated_at"?: string,"whatsapp_opt_in"?: boolean,"whatsapp_opt_in_at"?: string | null,"whatsapp_opt_in_source"?: string | null
+                    "address_line": string,"city": string,"code"?: string,"created_at"?: string,"customer_name": string,"delivery_fee_lkr": number,"district": string,"email"?: string | null,"id"?: string,"idempotency_key"?: string | null,"notes"?: string | null,"payment_method": Database["public"]['Enums']["payment_method"],"payment_status"?: Database["public"]['Enums']["payment_status"],"phone_e164": string,"status"?: Database["public"]['Enums']["order_status"],"subtotal_lkr": number,"total_lkr": number,"updated_at"?: string
                   }
                   Update: {
-                    "address_line"?: string,"city"?: string,"code"?: string,"created_at"?: string,"customer_name"?: string,"delivery_fee_lkr"?: number,"district"?: string,"email"?: string | null,"id"?: string,"idempotency_key"?: string | null,"notes"?: string | null,"payment_method"?: Database["public"]['Enums']["payment_method"],"payment_status"?: Database["public"]['Enums']["payment_status"],"phone_e164"?: string,"status"?: Database["public"]['Enums']["order_status"],"subtotal_lkr"?: number,"total_lkr"?: number,"updated_at"?: string,"whatsapp_opt_in"?: boolean,"whatsapp_opt_in_at"?: string | null,"whatsapp_opt_in_source"?: string | null
+                    "address_line"?: string,"city"?: string,"code"?: string,"created_at"?: string,"customer_name"?: string,"delivery_fee_lkr"?: number,"district"?: string,"email"?: string | null,"id"?: string,"idempotency_key"?: string | null,"notes"?: string | null,"payment_method"?: Database["public"]['Enums']["payment_method"],"payment_status"?: Database["public"]['Enums']["payment_status"],"phone_e164"?: string,"status"?: Database["public"]['Enums']["order_status"],"subtotal_lkr"?: number,"total_lkr"?: number,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -373,32 +353,6 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"whatsapp_messages": {
-                  Row: {
-                    "body_preview": string | null,"created_at": string,"direction": string,"error_code": string | null,"id": string,"order_id": string | null,"outbox_id": string | null,"phone_e164": string,"provider_message_id": string | null,"status": string | null,"template_name": string | null,"updated_at": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "body_preview"?: string | null,"created_at"?: string,"direction": string,"error_code"?: string | null,"id"?: string,"order_id"?: string | null,"outbox_id"?: string | null,"phone_e164": string,"provider_message_id"?: string | null,"status"?: string | null,"template_name"?: string | null,"updated_at"?: string
-                  }
-                  Update: {
-                    "body_preview"?: string | null,"created_at"?: string,"direction"?: string,"error_code"?: string | null,"id"?: string,"order_id"?: string | null,"outbox_id"?: string | null,"phone_e164"?: string,"provider_message_id"?: string | null,"status"?: string | null,"template_name"?: string | null,"updated_at"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "whatsapp_messages_order_id_fkey"
-      columns: ["order_id"]
-isOneToOne: false
-      referencedRelation: "orders"
-      referencedColumns: ["id"]
-    },{
-      foreignKeyName: "whatsapp_messages_outbox_id_fkey"
-      columns: ["outbox_id"]
-isOneToOne: false
-      referencedRelation: "notification_outbox"
-      referencedColumns: ["id"]
-    }
-                  ]
                 }
           }
           Views: {
@@ -406,14 +360,14 @@ isOneToOne: false
           }
           Functions: {
             "create_order":
-{ Args: { "p_address_line": string,"p_city": string,"p_customer_name": string,"p_district": string,"p_email"?: string,"p_idempotency_key": string,"p_items": Json,"p_notes"?: string,"p_payment_method": Database["public"]['Enums']["payment_method"],"p_phone_e164": string,"p_whatsapp_opt_in": boolean }; Returns: Json
+{ Args: { "p_address_line": string,"p_city": string,"p_customer_name": string,"p_district": string,"p_email"?: string,"p_idempotency_key": string,"p_items": Json,"p_notes"?: string,"p_payment_method": Database["public"]['Enums']["payment_method"],"p_phone_e164": string }; Returns: Json
                            },
 "record_payment":
 { Args: { "p_amount_lkr": number,"p_method": Database["public"]['Enums']["payment_method"],"p_order_id": string,"p_recorded_by": string,"p_reference"?: string,"p_slip_path"?: string }; Returns: Json
                            }
           }
           Enums: {
-            "admin_role": "admin"|"staff","notification_event": "order_placed"|"payment_received"|"order_dispatched"|"order_delivered"|"order_cancelled","notification_status": "pending"|"processing"|"sent"|"delivered"|"read"|"failed"|"skipped","order_status": "pending"|"confirmed"|"packed"|"dispatched"|"delivered"|"cancelled"|"returned","payment_method": "cod"|"bank_transfer","payment_status": "unpaid"|"awaiting_verification"|"paid"|"refunded","review_status": "pending"|"approved"|"rejected"
+            "admin_role": "admin"|"staff","order_status": "pending"|"confirmed"|"packed"|"dispatched"|"delivered"|"cancelled"|"returned","payment_method": "cod"|"bank_transfer","payment_status": "unpaid"|"awaiting_verification"|"paid"|"refunded","review_status": "pending"|"approved"|"rejected"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -529,7 +483,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "admin_role": ["admin", "staff"],"notification_event": ["order_placed", "payment_received", "order_dispatched", "order_delivered", "order_cancelled"],"notification_status": ["pending", "processing", "sent", "delivered", "read", "failed", "skipped"],"order_status": ["pending", "confirmed", "packed", "dispatched", "delivered", "cancelled", "returned"],"payment_method": ["cod", "bank_transfer"],"payment_status": ["unpaid", "awaiting_verification", "paid", "refunded"],"review_status": ["pending", "approved", "rejected"]
+            "admin_role": ["admin", "staff"],"order_status": ["pending", "confirmed", "packed", "dispatched", "delivered", "cancelled", "returned"],"payment_method": ["cod", "bank_transfer"],"payment_status": ["unpaid", "awaiting_verification", "paid", "refunded"],"review_status": ["pending", "approved", "rejected"]
           }
         }
 } as const

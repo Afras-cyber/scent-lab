@@ -3,7 +3,7 @@
 --     authenticated unless listed below.
 --   * The browser (anon) can read only active catalog rows, approved reviews,
 --     active delivery zones and public settings.
---   * Orders, payments, invoices, the outbox, WhatsApp logs, newsletter and
+--   * Orders, payments, invoices, newsletter and
 --     admin users are reachable only by server code using the secret key
 --     (service_role, which bypasses RLS).
 -- `authenticated` is never used (staff log in through NextAuth), so it gets
@@ -37,8 +37,6 @@ alter table public.order_items enable row level security;
 alter table public.order_events enable row level security;
 alter table public.payments enable row level security;
 alter table public.invoices enable row level security;
-alter table public.notification_outbox enable row level security;
-alter table public.whatsapp_messages enable row level security;
 
 -- ---------------------------------------------------------------------------
 -- Public catalog (read only)
@@ -119,5 +117,4 @@ create policy "Public settings are readable" on public.site_settings
   using (is_public);
 
 -- Everything else (orders, order_items, order_events, payments, invoices,
--- notification_outbox, whatsapp_messages, newsletter_subscribers,
--- admin_users) has RLS on, no grants and no policies: no access.
+-- newsletter_subscribers, admin_users) has RLS on, no grants and no policies: no access.

@@ -91,42 +91,16 @@ export const commerceConfigSchema = z.object({
   }),
 });
 
-export const notificationEventSchema = z.enum([
-  "order_placed",
-  "payment_received",
-  "order_dispatched",
-  "order_delivered",
-  "order_cancelled",
-]);
+// Prefilled texts for customer-to-shop wa.me links. `{token}` values are
+// filled in when the link is built; the general help text is
+// `site.contact.whatsapp.defaultMessage`.
+const waMessage = z.string().min(1).max(1000);
 
-const notificationEventConfig = z.object({
-  enabled: z.boolean(),
-  template: z
-    .string()
-    .regex(/^[a-z0-9_]+$/, "WhatsApp template names are lowercase snake_case"),
-  attach: z.enum(["invoice", "receipt"]).nullable(),
-});
-
-export const notificationsConfigSchema = z.object({
-  provider: z.literal("whatsapp-cloud"),
-  graphApiVersion: z.string().regex(/^v\d+\.\d+$/),
-  language: z.string().min(2),
-  events: z.record(notificationEventSchema, notificationEventConfig),
-  retry: z
-    .object({
-      maxAttempts: z.int().min(1).max(10),
-      backoffSeconds: z.array(z.int().positive()).readonly(),
-    })
-    .refine((r) => r.backoffSeconds.length >= r.maxAttempts, {
-      message: "backoffSeconds needs one entry per attempt",
-    }),
-  optIn: z.object({
-    required: z.literal(true),
-    checkboxDefaultChecked: z.literal(false),
-  }),
-  pdf: z.object({
-    paper: z.literal("A4"),
-    showTaxLine: z.boolean(),
+export const whatsappConfigSchema = z.object({
+  messages: z.object({
+    product: waMessage, // {product}, {size}, {url}
+    orderPlaced: waMessage, // {orderCode}, {total}
+    orderHelp: waMessage, // {orderCode}
   }),
 });
 
@@ -182,23 +156,31 @@ export const featuresConfigSchema = z.object({
   darkMode: z.boolean(),
   reviews: z.boolean(),
   newsletter: z.boolean(),
-  whatsappNotifications: z.boolean(),
   turnstile: z.boolean(),
 });
 
 export type SiteConfig = z.infer<typeof siteConfigSchema>;
 export type CommerceConfig = z.infer<typeof commerceConfigSchema>;
-export type NotificationsConfig = z.infer<typeof notificationsConfigSchema>;
+export type WhatsappConfig = z.infer<typeof whatsappConfigSchema>;
 export type NavigationConfig = z.infer<typeof navigationConfigSchema>;
 export type SeoConfig = z.infer<typeof seoConfigSchema>;
 export type FeaturesConfig = z.infer<typeof featuresConfigSchema>;
 export type PaymentMethod = z.infer<typeof paymentMethodSchema>;
-export type NotificationEvent = z.infer<typeof notificationEventSchema>;
 
 // --- Placeholder detection -------------------------------------------------
 
-/** Dummy values from the spec that pass format checks but must not ship. */
-const KNOWN_PLACEHOLDER_VALUES = new Set(["94767760000", "+94767760000"]);
+/**
+ * Dummy values that pass format checks but must not ship: the spec's sample
+ * number, and the mock address and bank details used until the client
+ * supplies real ones (marked `// MOCK` in the config files).
+ */
+const KNOWN_PLACEHOLDER_VALUES = new Set([
+  "94767760000",
+  "+94767760000",
+  "No. 1, Sample Road",
+  "Sample Bank PLC",
+  "0000 0000 0000",
+]);
 
 const PLACEHOLDER_PATTERN = /TODO|\*{3,}/;
 
@@ -224,7 +206,7 @@ export function findPlaceholders(value: unknown, path = ""): string[] {
 type ConfigBundle = {
   site: unknown;
   commerce: unknown;
-  notifications: unknown;
+  whatsapp: unknown;
   navigation: unknown;
   seo: unknown;
   features: unknown;
@@ -233,7 +215,7 @@ type ConfigBundle = {
 const schemas = {
   site: siteConfigSchema,
   commerce: commerceConfigSchema,
-  notifications: notificationsConfigSchema,
+  whatsapp: whatsappConfigSchema,
   navigation: navigationConfigSchema,
   seo: seoConfigSchema,
   features: featuresConfigSchema,
@@ -242,7 +224,7 @@ const schemas = {
 /**
  * Validates every config. Returns a list of human-readable problems (empty
  * when everything is fine). With `strict`, placeholders and missing launch
- * values (bank details, WhatsApp number) are problems too.
+ * values (bank details, WhatsApp number, mock values) are problems too.
  */
 export function validateConfig(
   configs: ConfigBundle,

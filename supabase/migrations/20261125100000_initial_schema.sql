@@ -8,8 +8,6 @@
 create type public.order_status as enum ('pending', 'confirmed', 'packed', 'dispatched', 'delivered', 'cancelled', 'returned');
 create type public.payment_method as enum ('cod', 'bank_transfer');
 create type public.payment_status as enum ('unpaid', 'awaiting_verification', 'paid', 'refunded');
-create type public.notification_event as enum ('order_placed', 'payment_received', 'order_dispatched', 'order_delivered', 'order_cancelled');
-create type public.notification_status as enum ('pending', 'processing', 'sent', 'delivered', 'read', 'failed', 'skipped');
 create type public.review_status as enum ('pending', 'approved', 'rejected');
 create type public.admin_role as enum ('admin', 'staff');
 
@@ -245,9 +243,6 @@ create table public.orders (
   city text not null,
   district text not null,
   notes text,
-  whatsapp_opt_in boolean not null default false,
-  whatsapp_opt_in_at timestamptz,
-  whatsapp_opt_in_source text,
   payment_method public.payment_method not null,
   payment_status public.payment_status not null default 'unpaid',
   status public.order_status not null default 'pending',
@@ -292,7 +287,7 @@ create table public.order_events (
 create index order_events_order_idx on public.order_events (order_id, created_at);
 
 -- ---------------------------------------------------------------------------
--- Payments, invoices and notifications
+-- Payments and invoices
 -- ---------------------------------------------------------------------------
 
 create table public.payments (
@@ -317,41 +312,3 @@ create table public.invoices (
   created_at timestamptz not null default now(),
   unique (order_id, kind)
 );
-
-create table public.notification_outbox (
-  id uuid primary key default gen_random_uuid(),
-  order_id uuid not null references public.orders (id) on delete cascade,
-  event public.notification_event not null,
-  channel text not null default 'whatsapp' check (channel in ('whatsapp')),
-  status public.notification_status not null default 'pending',
-  attempts integer not null default 0 check (attempts >= 0),
-  next_attempt_at timestamptz not null default now(),
-  locked_at timestamptz,
-  provider_message_id text,
-  last_error text,
-  sent_at timestamptz,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  unique (order_id, event, channel) -- the same message can never be queued twice
-);
-create index notification_outbox_due_idx on public.notification_outbox (status, next_attempt_at);
-create trigger notification_outbox_updated_at before update on public.notification_outbox
-  for each row execute function public.set_updated_at();
-
-create table public.whatsapp_messages (
-  id uuid primary key default gen_random_uuid(),
-  order_id uuid references public.orders (id) on delete set null,
-  outbox_id uuid references public.notification_outbox (id) on delete set null,
-  direction text not null check (direction in ('out', 'in')),
-  provider_message_id text unique,
-  phone_e164 text not null,
-  template_name text,
-  body_preview text check (char_length(body_preview) <= 200), -- short, no sensitive data
-  status text check (status in ('sent', 'delivered', 'read', 'failed', 'received')),
-  error_code text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-create index whatsapp_messages_order_idx on public.whatsapp_messages (order_id, created_at);
-create trigger whatsapp_messages_updated_at before update on public.whatsapp_messages
-  for each row execute function public.set_updated_at();

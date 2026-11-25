@@ -1,17 +1,17 @@
 import { commerceConfig } from "./commerce.config";
 import { featuresConfig } from "./features.config";
 import { navigationConfig } from "./navigation.config";
-import { notificationsConfig } from "./notifications.config";
 import { validateConfig } from "./schema";
 import { seoConfig } from "./seo.config";
 import { siteConfig } from "./site.config";
+import { whatsappConfig } from "./whatsapp.config";
 
 // Relative imports only: next.config.ts loads this file outside the app bundle.
 
 export const allConfigs = {
   site: siteConfig,
   commerce: commerceConfig,
-  notifications: notificationsConfig,
+  whatsapp: whatsappConfig,
   navigation: navigationConfig,
   seo: seoConfig,
   features: featuresConfig,

@@ -1,6 +1,6 @@
 -- create_order and record_payment run as the server (service_role).
 begin;
-select plan(20);
+select plan(18);
 
 set local role service_role;
 
@@ -22,7 +22,6 @@ select 'first', public.create_order(
   p_city => 'Kandy',
   p_district => 'Kandy',
   p_payment_method => 'cod',
-  p_whatsapp_opt_in => true,
   p_items => jsonb_build_array(
     jsonb_build_object('variant_id', (select id from t_variants where slug = 'oud-royale'), 'quantity', 1),
     jsonb_build_object('variant_id', (select id from t_variants where slug = 'white-musk-attar'), 'quantity', 1),
@@ -47,11 +46,6 @@ select is(
   'stock is reduced'
 );
 select is(
-  (select event::text from public.notification_outbox where order_id = (select (body ->> 'order_id')::uuid from t_result where name = 'first')),
-  'order_placed',
-  'opted-in order queues the invoice message'
-);
-select is(
   (select status::text from public.order_events where order_id = (select (body ->> 'order_id')::uuid from t_result where name = 'first')),
   'pending',
   'first timeline event is pending'
@@ -67,13 +61,12 @@ select 'replay', public.create_order(
   p_city => 'Kandy',
   p_district => 'Kandy',
   p_payment_method => 'cod',
-  p_whatsapp_opt_in => true,
   p_items => jsonb_build_array(jsonb_build_object('variant_id', (select id from t_variants where slug = 'oud-royale'), 'quantity', 1))
 );
 select is((select body ->> 'code' from t_result where name = 'replay'), (select body ->> 'code' from t_result where name = 'first'), 'replay returns the same order code');
 select is((select (body ->> 'created')::boolean from t_result where name = 'replay'), false, 'replay reports created = false');
 
--- Below the threshold the district fee applies; no opt-in means no outbox row.
+-- Below the threshold the district fee applies.
 insert into t_result
 select 'small', public.create_order(
   p_idempotency_key => 'test-key-0000000002',
@@ -83,15 +76,9 @@ select 'small', public.create_order(
   p_city => 'Colombo 03',
   p_district => 'Colombo',
   p_payment_method => 'bank_transfer',
-  p_whatsapp_opt_in => false,
   p_items => jsonb_build_array(jsonb_build_object('variant_id', (select id from t_variants where slug = 'white-musk-attar'), 'quantity', 1))
 );
 select is((select (body ->> 'delivery_fee_lkr')::int from t_result where name = 'small'), 350, 'Colombo fee applies under the threshold');
-select is(
-  (select count(*) from public.notification_outbox where order_id = (select (body ->> 'order_id')::uuid from t_result where name = 'small')),
-  0::bigint,
-  'no WhatsApp message without opt-in'
-);
 select is(
   (select payment_status::text from public.orders where id = (select (body ->> 'order_id')::uuid from t_result where name = 'small')),
   'awaiting_verification',
@@ -101,31 +88,31 @@ select is(
 -- Rejections.
 select throws_ok(
   format(
-    $$select public.create_order('test-key-0000000003', 'No Stock', '+94771234569', '1 Main Street', 'Galle', 'Galle', 'cod', false, '[{"variant_id": "%s", "quantity": 1}]')$$,
+    $$select public.create_order('test-key-0000000003', 'No Stock', '+94771234569', '1 Main Street', 'Galle', 'Galle', 'cod', '[{"variant_id": "%s", "quantity": 1}]')$$,
     (select id from t_variants where slug = 'oud-rose-attar')
   ),
   'P0001', 'INSUFFICIENT_STOCK', 'out-of-stock variant is rejected'
 );
 select throws_ok(
   format(
-    $$select public.create_order('test-key-0000000004', 'Far Away', '+94771234569', '1 Main Street', 'Atlantis', 'Atlantis', 'cod', false, '[{"variant_id": "%s", "quantity": 1}]')$$,
+    $$select public.create_order('test-key-0000000004', 'Far Away', '+94771234569', '1 Main Street', 'Atlantis', 'Atlantis', 'cod', '[{"variant_id": "%s", "quantity": 1}]')$$,
     (select id from t_variants where slug = 'white-musk-attar')
   ),
   'P0001', 'UNKNOWN_DISTRICT', 'unknown district is rejected'
 );
 select throws_ok(
-  $$select public.create_order('test-key-0000000005', 'Bad Input', '+94771234569', '1 Main Street', 'Galle', 'Galle', 'cod', false, '[{"variant_id": "not-a-uuid", "quantity": 1}]')$$,
+  $$select public.create_order('test-key-0000000005', 'Bad Input', '+94771234569', '1 Main Street', 'Galle', 'Galle', 'cod', '[{"variant_id": "not-a-uuid", "quantity": 1}]')$$,
   'P0001', 'INVALID_INPUT', 'malformed variant id is rejected'
 );
 select throws_ok(
   format(
-    $$select public.create_order('test-key-0000000006', 'Too Many', '+94771234569', '1 Main Street', 'Galle', 'Galle', 'cod', false, '[{"variant_id": "%s", "quantity": 21}]')$$,
+    $$select public.create_order('test-key-0000000006', 'Too Many', '+94771234569', '1 Main Street', 'Galle', 'Galle', 'cod', '[{"variant_id": "%s", "quantity": 21}]')$$,
     (select id from t_variants where slug = 'white-musk-attar')
   ),
   'P0001', 'INVALID_INPUT', 'quantity over the per-line limit is rejected'
 );
 
--- record_payment: full payment marks the order paid and queues the receipt.
+-- record_payment: full payment marks the order paid.
 insert into t_result
 select 'payment', public.record_payment(
   p_order_id => (select (body ->> 'order_id')::uuid from t_result where name = 'first'),
@@ -134,13 +121,7 @@ select 'payment', public.record_payment(
   p_recorded_by => null
 );
 select is((select body ->> 'payment_status' from t_result where name = 'payment'), 'paid', 'full payment marks the order paid');
-select ok(
-  exists (
-    select 1 from public.notification_outbox
-    where order_id = (select (body ->> 'order_id')::uuid from t_result where name = 'first') and event = 'payment_received'
-  ),
-  'payment queues the receipt message'
-);
+select is((select (body ->> 'paid_lkr')::int from t_result where name = 'payment'), 5970, 'paid amount is summed');
 
 reset role;
 select * from finish();
