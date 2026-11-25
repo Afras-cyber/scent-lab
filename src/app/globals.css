@@ -1,26 +1,145 @@
 @import "tailwindcss";
 
+/* Dark mode is a `.dark` class on <html>, set before paint by the inline
+   script in app/layout.tsx. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Palette: spec §7.1. Token names follow shadcn/ui. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f6f4ee;
+  --foreground: #3a3a38;
+  --heading: #153431;
+  --card: #ffffff;
+  --card-foreground: #3a3a38;
+  --popover: #ffffff;
+  --popover-foreground: #3a3a38;
+  --muted: #f4f0e9;
+  --muted-foreground: #6a6a66;
+  --primary: #243533;
+  --primary-foreground: #ffffff;
+  --secondary: #e3e9e7;
+  --secondary-foreground: #153431;
+  --accent: #bda23d;
+  --accent-foreground: #081b1a;
+  --border: #e4e1d8;
+  --input: #d6d2c6;
+  --ring: #bda23d;
+  --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+
+  /* Brand surfaces stay dark green in both themes (header, footer, hero cards). */
+  --brand-deep: #081b1a;
+  --brand-darkest: #041210;
+  --brand-mid: #243533;
+  --brand-foreground: #f6f4ee;
+  --gold: #bda23d;
+  --whatsapp: #16a34a;
+
+  --radius: 1rem;
+}
+
+.dark {
+  --background: #081b1a;
+  --foreground: #f6f4ee;
+  --heading: #f6f4ee;
+  --card: #0a2320;
+  --card-foreground: #f6f4ee;
+  --popover: #0a2320;
+  --popover-foreground: #f6f4ee;
+  --muted: #0d2523;
+  --muted-foreground: #a9bab6;
+  --primary: #bda23d;
+  --primary-foreground: #081b1a;
+  --secondary: #153431;
+  --secondary-foreground: #f6f4ee;
+  --border: #1c3835;
+  --input: #243533;
+  --destructive: #f97066;
+  --destructive-foreground: #081b1a;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-heading: var(--heading);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-brand-deep: var(--brand-deep);
+  --color-brand-darkest: var(--brand-darkest);
+  --color-brand-mid: var(--brand-mid);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-gold: var(--gold);
+  --color-whatsapp: var(--whatsapp);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-playfair), ui-serif, Georgia, serif;
+
+  --radius-sm: calc(var(--radius) - 8px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Dark green gradient used by hero and featured cards. */
+@utility bg-brand-gradient {
+  background-image: linear-gradient(
+    135deg,
+    var(--brand-deep),
+    var(--brand-mid)
+  );
+}
+
+/* Container: max 1312px content, 20px side padding on mobile, 64px on desktop. */
+@utility container-page {
+  margin-inline: auto;
+  width: 100%;
+  max-width: calc(1312px + 2 * 64px);
+  padding-inline: 20px;
+  @media (width >= 64rem) {
+    padding-inline: 64px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-serif text-heading;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
 }
