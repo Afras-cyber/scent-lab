@@ -36,7 +36,7 @@ export function TopBar() {
   const itemClass = "flex items-center gap-x-6 gap-y-1";
 
   return (
-    <div className="bg-secondary text-[13px] text-secondary-foreground">
+    <div className="bg-secondary text-[10px] text-secondary-foreground sm:text-[11px] md:text-xs lg:text-[11px]">
       <div className="container-page flex min-h-9 items-center justify-center py-1.5 lg:justify-between">
         <ul className={cn(itemClass, "lg:hidden")}>
           {left.map((item) => (

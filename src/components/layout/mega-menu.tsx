@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, ChevronDown, Menu, MessageCircle } from "lucide-react";
+import { ArrowRight, ChevronDown, Menu } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { NavigationMenu } from "radix-ui";
@@ -9,18 +9,18 @@ import { navigationConfig } from "@/config";
 import type { NavigationConfig } from "@/config/schema";
 import { cn } from "@/lib/utils";
 
-const { megaMenu, whatsappCta } = navigationConfig;
+const { megaMenu } = navigationConfig;
 const mainNav: NavigationConfig["mainNav"] = navigationConfig.mainNav;
 
 // Desktop nav row: "Shop All" opens the full-width mega menu; the other links
 // go straight to their page. Radix handles hover intent, Esc and arrow keys.
-export function MegaMenu({ whatsappHref }: { whatsappHref: string }) {
+export function MegaMenu() {
   return (
     <NavigationMenu.Root className="relative" delayDuration={100}>
       <div className="container-page flex h-14 items-center gap-4">
         <NavigationMenu.List className="flex items-center gap-1 xl:gap-2">
           <NavigationMenu.Item>
-            <NavigationMenu.Trigger className="group inline-flex h-9 items-center gap-2 rounded-full bg-gold pr-3 pl-4 text-[15px] font-semibold text-brand-deep transition-colors hover:bg-gold/90">
+            <NavigationMenu.Trigger className="group inline-flex h-9 items-center gap-2 rounded-full bg-gold pr-3 pl-4 text-[13px] font-semibold text-brand-deep transition-colors hover:bg-gold/90 xl:text-sm">
               <Menu className="size-4" aria-hidden />
               Shop All
               <ChevronDown
@@ -39,13 +39,13 @@ export function MegaMenu({ whatsappHref }: { whatsappHref: string }) {
                 <Link
                   href={item.href}
                   className={cn(
-                    "inline-flex h-9 items-center gap-2 rounded-full px-3 text-[15px] text-brand-foreground/90 transition-colors hover:bg-white/10 hover:text-brand-foreground",
+                    "inline-flex h-9 items-center gap-2 rounded-full px-3 text-[13px] text-brand-foreground/90 transition-colors hover:bg-white/10 hover:text-brand-foreground xl:text-sm",
                     item.badge && "font-semibold text-brand-foreground",
                   )}
                 >
                   {item.label}
                   {item.badge && (
-                    <span className="rounded-full bg-gold px-2 py-0.5 text-[10px] font-bold tracking-wide text-brand-deep uppercase">
+                    <span className="rounded-full bg-gold px-2 py-0.5 text-[9px] font-bold tracking-wide text-brand-deep uppercase xl:text-[10px]">
                       {item.badge}
                     </span>
                   )}
@@ -54,16 +54,6 @@ export function MegaMenu({ whatsappHref }: { whatsappHref: string }) {
             </NavigationMenu.Item>
           ))}
         </NavigationMenu.List>
-
-        <a
-          href={whatsappHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="ml-auto hidden items-center gap-2 text-[15px] text-brand-foreground/90 hover:text-brand-foreground hover:underline xl:inline-flex"
-        >
-          <MessageCircle className="size-4" aria-hidden />
-          {whatsappCta.nav}
-        </a>
       </div>
 
       <div className="absolute inset-x-0 top-full">
@@ -79,7 +69,7 @@ function MegaMenuPanel() {
     <div className="container-page grid grid-cols-[repeat(4,minmax(0,1fr))_minmax(0,340px)] gap-8 py-10">
       {megaMenu.groups.map((group) => (
         <div key={group.title} className="flex flex-col gap-4">
-          <p className="text-sm font-semibold tracking-[0.12em] text-heading uppercase">
+          <p className="text-[13px] font-semibold tracking-[0.12em] text-heading uppercase xl:text-sm">
             {group.title}
           </p>
           <ul className="flex flex-col gap-2.5">
@@ -88,7 +78,7 @@ function MegaMenuPanel() {
                 <NavigationMenu.Link asChild>
                   <Link
                     href={link.href}
-                    className="text-[15px] text-foreground transition-colors hover:text-gold"
+                    className="text-[13px] text-foreground transition-colors hover:text-gold xl:text-sm"
                   >
                     {link.label}
                   </Link>
@@ -100,7 +90,7 @@ function MegaMenuPanel() {
                 <NavigationMenu.Link asChild>
                   <Link
                     href={group.viewAll}
-                    className="inline-flex items-center gap-2 text-[15px] font-semibold text-heading hover:text-gold"
+                    className="inline-flex items-center gap-2 text-[13px] font-semibold text-heading hover:text-gold xl:text-sm"
                   >
                     View all <ArrowRight className="size-4" aria-hidden />
                   </Link>
@@ -112,15 +102,17 @@ function MegaMenuPanel() {
       ))}
 
       <div className="relative flex flex-col items-start gap-2 self-start overflow-hidden rounded-[20px] bg-brand-gradient p-7 text-brand-foreground">
-        <p className="text-xs font-semibold tracking-[0.12em] text-brand-foreground/80 uppercase">
+        <p className="text-[11px] font-semibold tracking-[0.12em] text-brand-foreground/80 uppercase xl:text-xs">
           {featured.eyebrow}
         </p>
-        <p className="font-serif text-3xl">{featured.title}</p>
-        <p className="text-sm text-brand-foreground/80">{featured.text}</p>
+        <p className="font-serif text-xl xl:text-2xl">{featured.title}</p>
+        <p className="text-[13px] text-brand-foreground/80 xl:text-sm">
+          {featured.text}
+        </p>
         <NavigationMenu.Link asChild>
           <Link
             href={featured.cta.href}
-            className="mt-3 inline-flex h-10 items-center rounded-full bg-white px-5 text-sm font-semibold text-brand-deep transition-colors hover:bg-white/90"
+            className="mt-3 inline-flex h-10 items-center rounded-full bg-white px-5 text-[13px] font-semibold text-brand-deep transition-colors hover:bg-white/90 xl:text-sm"
           >
             {featured.cta.label}
           </Link>

@@ -21,7 +21,7 @@ export async function Header() {
           <MobileMenu whatsappHref={whatsappHref} />
         </div>
 
-        <Logo className="text-brand-foreground lg:text-[28px]" />
+        <Logo className="text-xl text-brand-foreground sm:text-[22px] md:text-2xl lg:text-[24px]" />
 
         <HeaderSearch
           collections={collections}
@@ -31,7 +31,7 @@ export async function Header() {
         <div className="flex flex-1 items-center justify-end gap-1 lg:flex-none lg:gap-3">
           <Link
             href="/track-order"
-            className="inline-flex size-11 items-center justify-center gap-2 rounded-full transition-colors hover:bg-white/10 lg:h-12 lg:w-auto lg:bg-white lg:px-6 lg:text-[15px] lg:font-semibold lg:text-brand-deep lg:hover:bg-white/90"
+            className="inline-flex size-11 items-center justify-center gap-2 rounded-full transition-colors hover:bg-white/10 lg:h-12 lg:w-auto lg:bg-white lg:px-6 lg:text-xs lg:font-semibold lg:text-brand-deep lg:hover:bg-white/90 xl:text-[13px]"
           >
             <Box className="size-6 lg:size-5" aria-hidden />
             <span className="sr-only lg:not-sr-only">Track Order</span>
@@ -40,7 +40,7 @@ export async function Header() {
             href={whatsappHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden h-12 items-center gap-2 rounded-full bg-whatsapp-soft px-6 text-[15px] font-semibold text-whatsapp transition-opacity hover:opacity-90 xl:inline-flex"
+            className="hidden h-12 items-center gap-2 rounded-full bg-whatsapp-soft px-6 font-semibold text-whatsapp transition-opacity hover:opacity-90 xl:inline-flex xl:text-xs 2xl:text-[13px]"
           >
             <MessageCircle className="size-5" aria-hidden />
             {siteConfig.contact.whatsapp.display}
@@ -51,7 +51,9 @@ export async function Header() {
             <span className="inline-flex size-11 items-center justify-center rounded-full transition-colors group-hover:bg-white/10 lg:size-12 lg:bg-white/10 lg:group-hover:bg-white/20">
               <ShoppingCart className="size-6 lg:size-5" aria-hidden />
             </span>
-            <span className="sr-only text-sm lg:not-sr-only">My Cart</span>
+            <span className="sr-only text-sm lg:not-sr-only lg:text-xs xl:text-[13px]">
+              My Cart
+            </span>
           </Link>
         </div>
       </div>
@@ -61,7 +63,7 @@ export async function Header() {
       </div>
 
       <div className="border-t border-white/10 max-lg:hidden">
-        <MegaMenu whatsappHref={whatsappHref} />
+        <MegaMenu />
       </div>
     </header>
   );
