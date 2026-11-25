@@ -78,6 +78,8 @@ export const commerceConfigSchema = z.object({
   maxQtyPerLine: z.int().min(1).max(20),
   maxLinesPerOrder: z.int().min(1).max(50),
   freeDeliveryThresholdLkr: z.int().nonnegative(),
+  lowStockThreshold: z.int().min(1),
+  productsPerPage: z.int().min(4).max(48),
   paymentMethods: z.array(paymentMethodSchema).min(1).readonly(),
   bankTransfer: z.object({
     bankName: z.string(),

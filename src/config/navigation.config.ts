@@ -65,7 +65,6 @@ export const navigationConfig = {
           { label: "Under Rs 5,000", href: "/shop?maxPrice=5000" },
           { label: "From Rs 5,000", href: "/shop?minPrice=5000" },
           { label: "Today’s Deals", href: "/shop?sale=true" },
-          { label: "Clearance", href: "/shop?clearance=true" },
         ],
         viewAll: "/shop",
       },

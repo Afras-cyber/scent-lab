@@ -9,6 +9,8 @@ export const commerceConfig = {
   maxQtyPerLine: 20,
   maxLinesPerOrder: 30,
   freeDeliveryThresholdLkr: 5000,
+  lowStockThreshold: 5, // "Only 3 left" below this
+  productsPerPage: 12,
   paymentMethods: ["cod", "bank_transfer"],
   bankTransfer: {
     // MOCK until the client supplies real details. The production build
