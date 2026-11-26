@@ -9,5 +9,7 @@ export const whatsappConfig = {
     orderPlaced:
       "Hello AYAD, I just placed order {orderCode} (total {total}). Please confirm.",
     orderHelp: "Hello AYAD, I have a question about order {orderCode}.",
+    notifyStock:
+      "Hello AYAD, please tell me when {product} is back in stock.\n{url}",
   },
 } as const satisfies WhatsappConfig;

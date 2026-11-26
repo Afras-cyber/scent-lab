@@ -13,6 +13,11 @@ import type {
 const bySortOrder = (a: { sort_order: number }, b: { sort_order: number }) =>
   a.sort_order - b.sort_order;
 
+/** Bottle sizes in a variant label: "12ml attar" → ["12ml"], "5 × 3ml" → ["3ml"]. */
+export function parseSizes(label: string): string[] {
+  return [...label.matchAll(/(\d+)\s*ml/gi)].map((m) => `${Number(m[1])}ml`);
+}
+
 function toGender(value: string | null): Gender | null {
   return value === "men" || value === "women" || value === "unisex"
     ? value
@@ -87,6 +92,9 @@ export function toProductCard(row: ProductRow): ProductCardData | null {
       .flatMap((n) => (n.notes ? [n.notes] : [])),
     collectionSlugs: row.product_collections.flatMap((c) =>
       c.collections ? [c.collections.slug] : [],
+    ),
+    sizes: [...new Set(variants.flatMap((v) => parseSizes(v.label)))].sort(
+      (a, b) => parseInt(a) - parseInt(b),
     ),
   };
 }

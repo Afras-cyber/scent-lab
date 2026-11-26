@@ -4,6 +4,7 @@ import { homeConfig } from "./home.config";
 import { navigationConfig } from "./navigation.config";
 import { validateConfig } from "./schema";
 import { seoConfig } from "./seo.config";
+import { shopConfig } from "./shop.config";
 import { siteConfig } from "./site.config";
 import { whatsappConfig } from "./whatsapp.config";
 
@@ -17,6 +18,7 @@ export const allConfigs = {
   seo: seoConfig,
   features: featuresConfig,
   home: homeConfig,
+  shop: shopConfig,
 };
 
 /** Throws when any config is invalid, or (strict) still has placeholders. */

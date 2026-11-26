@@ -49,6 +49,8 @@ export type ProductCardData = {
   lowStock: boolean;
   notes: CatalogNote[];
   collectionSlugs: string[];
+  /** Normalized bottle sizes from the variant labels, e.g. ["6ml", "12ml"]. */
+  sizes: string[];
 };
 
 export type ProductDetail = ProductCardData & {

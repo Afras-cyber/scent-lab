@@ -14,7 +14,7 @@ export async function FeaturedCollection() {
     homeConfig.featuredCollection;
   const [collection, products] = await Promise.all([
     getCollectionBySlug(collectionSlug),
-    listProducts({ collection: collectionSlug, sort: "featured" }),
+    listProducts({ collection: [collectionSlug], sort: "featured" }),
   ]);
   if (!collection) return null;
   const href = `/collections/${collection.slug}`;

@@ -1,10 +1,12 @@
-import { Eye, ShoppingCart } from "lucide-react";
+import { BellRing, Eye, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { siteConfig, whatsappConfig } from "@/config";
 import type { ProductCardData } from "@/features/catalog/types";
 import { cn } from "@/lib/utils";
+import { fillMessage, waLink } from "@/lib/whatsapp/link";
 
 import { Price } from "./price";
 import { Rating } from "./rating";
@@ -26,9 +28,12 @@ function badgeFor(product: ProductCardData) {
  */
 export function ProductCard({
   product,
+  eager = false,
   className,
 }: {
   product: ProductCardData;
+  /** Load the image right away (first row of a grid, likely the LCP). */
+  eager?: boolean;
   className?: string;
 }) {
   const href = productHref(product.slug);
@@ -46,6 +51,7 @@ export function ProductCard({
           src={product.image.src}
           alt={product.image.alt}
           fill
+          loading={eager ? "eager" : undefined}
           sizes="(min-width: 1024px) 280px, 45vw"
           className={cn(
             "object-contain p-4",
@@ -105,23 +111,39 @@ export function ProductCard({
         )}
       </div>
 
-      {/* Phase 2 wires this to the cart store; until then it opens the product page. */}
-      <Button
-        asChild
-        variant={product.inStock ? "default" : "outline"}
-        className="relative z-10 w-full max-lg:h-10 max-lg:text-[13px]"
-      >
-        <Link href={href}>
-          {product.inStock ? (
-            <>
-              <ShoppingCart aria-hidden />
-              Add to Cart
-            </>
-          ) : (
-            "View details"
-          )}
-        </Link>
-      </Button>
+      {product.inStock ? (
+        // Phase 2 wires this to the cart store; until then it opens the product page.
+        <Button
+          asChild
+          className="relative z-10 w-full max-lg:h-10 max-lg:text-[13px]"
+        >
+          <Link href={href}>
+            <ShoppingCart aria-hidden />
+            Add to Cart
+          </Link>
+        </Button>
+      ) : (
+        <Button
+          asChild
+          variant="secondary"
+          className="relative z-10 w-full bg-muted text-muted-foreground hover:bg-muted/80 max-lg:h-10 max-lg:text-[13px]"
+        >
+          <a
+            href={waLink(
+              fillMessage(whatsappConfig.messages.notifyStock, {
+                product: product.name,
+                url: `${siteConfig.url}${href}`,
+              }),
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <BellRing aria-hidden />
+            <span className="lg:hidden">Notify me</span>
+            <span className="max-lg:hidden">Notify on WhatsApp</span>
+          </a>
+        </Button>
+      )}
     </article>
   );
 }

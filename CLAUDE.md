@@ -10,7 +10,7 @@ AYAD (ayadscentlab.com) is an online perfume shop for Sri Lanka (LKR, Cash on De
 
 The full spec is `docs/AYAD_PROJECT_STRUCTURE.md`. Read the relevant section before building a feature; it covers the folder layout, database schema, RLS rules, checkout, tracking and WhatsApp flows, and the security checklist. Note that `/docs` is in `.gitignore`, so it exists only locally.
 
-**Status:** Phase 0 (foundation) is done: tooling, theme tokens and fonts, `src/config`, env validation, the full Supabase schema with RLS, `create_order` / `record_payment`, storage buckets, seed data, pgTAP + Vitest tests and CI. Phase 1 (storefront, read-only; spec §20) is in progress: the site chrome, the catalog data layer, `ProductCard` and the Home page (`components/home/`, copy in `config/home.config.ts`) are done; next are shop, collection, search and product pages and quick view. The architecture below is the target; build towards it.
+**Status:** Phase 0 (foundation) is done: tooling, theme tokens and fonts, `src/config`, env validation, the full Supabase schema with RLS, `create_order` / `record_payment`, storage buckets, seed data, pgTAP + Vitest tests and CI. Phase 1 (storefront, read-only; spec §20) is in progress: the site chrome, the catalog data layer, `ProductCard`, the Home page (`components/home/`, copy in `config/home.config.ts`) and `/shop` (`components/shop/`, `config/shop.config.ts`; multi-select filters as comma lists in the URL, facet counts, price slider, mobile filter/sort sheets) are done; next are collection, search and product pages and quick view. The architecture below is the target; build towards it.
 
 ## Commands
 
@@ -25,7 +25,7 @@ npm run check:config     # lists src/config placeholders that block a production
 
 npm run supabase:start   # local Supabase in Docker (Studio: http://127.0.0.1:54323, API: :54321)
 npm run supabase:status  # prints the URL, publishable key and secret key for .env.local
-npm run supabase:reset   # re-apply supabase/migrations + seed
+npm run supabase:reset   # re-apply supabase/migrations + seed (then hard-refresh: a running dev server keeps serving the old "use cache" catalog)
 npm run supabase:stop
 npm run db:types         # regenerate src/types/database.types.ts after every migration
 npm run db:lint          # plpgsql_check on SQL functions

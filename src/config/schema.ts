@@ -103,6 +103,7 @@ export const whatsappConfigSchema = z.object({
     product: waMessage, // {product}, {size}, {url}
     orderPlaced: waMessage, // {orderCode}, {total}
     orderHelp: waMessage, // {orderCode}
+    notifyStock: waMessage, // {product}, {url}
   }),
 });
 
@@ -266,6 +267,58 @@ export const homeConfigSchema = z.object({
   }),
 });
 
+const genderEnum = z.enum(["men", "women", "unisex"]);
+const sortEnum = z.enum([
+  "featured",
+  "trending",
+  "newest",
+  "price-asc",
+  "price-desc",
+  "rating",
+]);
+
+export const shopConfigSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().min(1),
+  breadcrumb: z.string().min(1),
+  quickFilters: z
+    .array(
+      z.object({
+        label: z.string().min(1),
+        filters: z.object({
+          gender: z.array(genderEnum).readonly().optional(),
+          collection: z.array(slugRef).readonly().optional(),
+          sale: z.literal(true).optional(),
+        }),
+      }),
+    )
+    .min(1)
+    .readonly(),
+  genderLabels: z.record(genderEnum, z.string().min(1)),
+  types: z
+    .array(z.object({ slug: slugRef, label: z.string().min(1) }))
+    .readonly(),
+  pricePresets: z
+    .array(
+      z.object({
+        label: z.string().min(1),
+        minPrice: z.int().positive().optional(),
+        maxPrice: z.int().positive().optional(),
+      }),
+    )
+    .readonly(),
+  sortLabels: z.record(sortEnum, z.string().min(1)),
+  noResults: z.object({
+    title: z.string().min(1),
+    text: z.string().min(1),
+    whatsappMessage: z.string().min(1).max(1000),
+    popularTitle: z.string().min(1),
+    popularCollections: z
+      .array(z.object({ label: z.string().min(1), slug: slugRef }))
+      .readonly(),
+  }),
+});
+
 export type SiteConfig = z.infer<typeof siteConfigSchema>;
 export type CommerceConfig = z.infer<typeof commerceConfigSchema>;
 export type WhatsappConfig = z.infer<typeof whatsappConfigSchema>;
@@ -273,6 +326,7 @@ export type NavigationConfig = z.infer<typeof navigationConfigSchema>;
 export type SeoConfig = z.infer<typeof seoConfigSchema>;
 export type FeaturesConfig = z.infer<typeof featuresConfigSchema>;
 export type HomeConfig = z.infer<typeof homeConfigSchema>;
+export type ShopConfig = z.infer<typeof shopConfigSchema>;
 export type PaymentMethod = z.infer<typeof paymentMethodSchema>;
 
 // --- Placeholder detection -------------------------------------------------
@@ -319,6 +373,7 @@ type ConfigBundle = {
   seo: unknown;
   features: unknown;
   home: unknown;
+  shop: unknown;
 };
 
 const schemas = {
@@ -329,6 +384,7 @@ const schemas = {
   seo: seoConfigSchema,
   features: featuresConfigSchema,
   home: homeConfigSchema,
+  shop: shopConfigSchema,
 } as const;
 
 /**

@@ -22,8 +22,8 @@ export async function Trending() {
       ids: filterProducts(
         products,
         "gender" in tab
-          ? { gender: tab.gender, sort: "trending" }
-          : { collection: tab.collection, sort: "trending" },
+          ? { gender: [tab.gender], sort: "trending" }
+          : { collection: [tab.collection], sort: "trending" },
       )
         .slice(0, PER_TAB)
         .map((p) => p.id),

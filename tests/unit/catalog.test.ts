@@ -1,8 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { filterProducts, paginate } from "@/features/catalog/filter";
-import { toProductCard } from "@/features/catalog/mappers";
 import {
+  catalogSizes,
+  facetCounts,
+  filterProducts,
+  paginate,
+  priceBounds,
+} from "@/features/catalog/filter";
+import { parseSizes, toProductCard } from "@/features/catalog/mappers";
+import {
+  countActiveFilters,
   parseShopFilters,
   shopFiltersToSearch,
 } from "@/features/catalog/schemas";
@@ -84,6 +91,7 @@ describe("toProductCard", () => {
       collectionSlugs: ["oud"],
     });
     expect(c.notes.map((n) => n.slug)).toEqual(["oud", "leather"]);
+    expect(c.sizes).toEqual(["6ml", "12ml"]);
     expect(c.image.src).toBe("/images/products/product_image.png");
   });
 
@@ -138,24 +146,41 @@ describe("toProductCard", () => {
   });
 });
 
+describe("parseSizes", () => {
+  it.each([
+    ["12ml attar", ["12ml"]],
+    ["50 ML spray", ["50ml"]],
+    ["5 × 3ml", ["3ml"]],
+    ["12ml + 50ml", ["12ml", "50ml"]],
+    ["06ml", ["6ml"]],
+    ["Gift box", []],
+  ])("%s → %j", (label, expected) => {
+    expect(parseSizes(label)).toEqual(expected);
+  });
+});
+
 describe("parseShopFilters", () => {
   it("keeps valid values and drops invalid ones", () => {
     expect(
       parseShopFilters({
-        gender: "men",
-        note: ["oud", "rose"],
+        gender: "men,robots",
+        note: ["oud,rose", "rose", "Bad!"],
+        size: "12ml,big",
         maxPrice: "3000",
         minPrice: "-5",
         sale: "yes",
+        inStock: "true",
         sort: "price-asc",
         page: "0",
         collection: "Bad Slug!",
         other: "x",
       }),
     ).toEqual({
-      gender: "men",
-      note: "oud",
+      gender: ["men"],
+      note: ["oud", "rose"],
+      size: ["12ml"],
       maxPrice: 3000,
+      inStock: true,
       sort: "price-asc",
     });
   });
@@ -165,10 +190,33 @@ describe("parseShopFilters", () => {
       sale: "true",
       page: "2",
       sort: "featured",
+      note: "oud,amber",
     });
-    expect(filters).toEqual({ sale: true, page: 2, sort: "featured" });
-    expect(shopFiltersToSearch(filters)).toBe("?sale=true&page=2");
+    expect(filters).toEqual({
+      note: ["oud", "amber"],
+      sale: true,
+      page: 2,
+      sort: "featured",
+    });
+    expect(shopFiltersToSearch(filters)).toBe(
+      "?note=oud,amber&sale=true&page=2",
+    );
+    expect(shopFiltersToSearch({ note: [] })).toBe("");
     expect(shopFiltersToSearch({})).toBe("");
+  });
+
+  it("counts active filters, ignoring sort and page", () => {
+    expect(
+      countActiveFilters({
+        gender: ["men"],
+        note: ["oud", "amber"],
+        minPrice: 500,
+        maxPrice: 3000,
+        sale: true,
+        sort: "rating",
+        page: 3,
+      }),
+    ).toBe(5);
   });
 });
 
@@ -205,22 +253,23 @@ describe("filterProducts", () => {
       gender: "men",
       price: 3290,
       ratingAvg: 5,
+      sizes: ["50ml"],
     }),
   ];
   const ids = (list: ProductCardData[]) => list.map((p) => p.id);
 
   it("shows unisex under men and women", () => {
-    expect(ids(filterProducts(products, { gender: "women" }))).toEqual([
+    expect(ids(filterProducts(products, { gender: ["women"] }))).toEqual([
       "a",
       "b",
     ]);
   });
 
   it("filters by note, collection, occasion, price and sale", () => {
-    expect(ids(filterProducts(products, { note: "musk" }))).toEqual(["b"]);
-    expect(ids(filterProducts(products, { collection: "musk-amber" }))).toEqual(
-      ["b"],
-    );
+    expect(ids(filterProducts(products, { note: ["musk"] }))).toEqual(["b"]);
+    expect(
+      ids(filterProducts(products, { collection: ["musk-amber"] })),
+    ).toEqual(["b"]);
     expect(ids(filterProducts(products, { occasion: "office" }))).toEqual([
       "b",
     ]);
@@ -232,6 +281,22 @@ describe("filterProducts", () => {
       "c",
     ]);
     expect(ids(filterProducts(products, { sale: true }))).not.toContain("b");
+  });
+
+  it("matches any option within a facet and every facet across them", () => {
+    expect(
+      ids(
+        filterProducts(products, { note: ["musk", "oud"], sort: "price-asc" }),
+      ),
+    ).toEqual(["b", "a", "d", "c"]);
+    expect(
+      ids(filterProducts(products, { note: ["musk", "oud"], gender: ["men"] })),
+    ).toEqual(["a", "d", "c"]); // a is unisex
+  });
+
+  it("filters by size and stock", () => {
+    expect(ids(filterProducts(products, { size: ["50ml"] }))).toEqual(["d"]);
+    expect(ids(filterProducts(products, { inStock: true }))).not.toContain("c");
   });
 
   it("sorts and puts sold-out products last", () => {
@@ -251,6 +316,40 @@ describe("filterProducts", () => {
     ]);
     expect(ids(filterProducts(products, { q: "MUSK" }))).toEqual(["b"]);
     expect(filterProducts(products, { q: "vanilla" })).toEqual([]);
+  });
+});
+
+describe("facetCounts", () => {
+  const products = [
+    card({ id: "a", gender: "unisex", sizes: ["6ml"] }),
+    card({
+      id: "b",
+      gender: "women",
+      notes: [{ slug: "musk", name: "Musk" }],
+      sizes: ["12ml"],
+    }),
+    card({ id: "c", gender: "men", sizes: ["12ml"] }),
+  ];
+
+  it("counts each option against the other active filters", () => {
+    const counts = facetCounts(products, { gender: ["men"] });
+    // The gender facet ignores its own selection; unisex counts for all.
+    expect(counts.gender).toEqual({ men: 2, women: 2, unisex: 1 });
+    // Other facets only count products matching Men (a and c).
+    expect(counts.note).toEqual({ oud: 2, leather: 2 });
+    expect(counts.size).toEqual({ "6ml": 1, "12ml": 1 });
+  });
+});
+
+describe("priceBounds and catalogSizes", () => {
+  it("widens to whole hundreds and sorts sizes numerically", () => {
+    const products = [
+      card({ price: 990, sizes: ["12ml", "100ml"] }),
+      card({ price: 4510, sizes: ["3ml", "12ml"] }),
+    ];
+    expect(priceBounds(products)).toEqual({ min: 900, max: 4600 });
+    expect(priceBounds([])).toEqual({ min: 0, max: 0 });
+    expect(catalogSizes(products)).toEqual(["3ml", "12ml", "100ml"]);
   });
 });
 
