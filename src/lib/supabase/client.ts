@@ -1,23 +1,18 @@
 "use client";
 
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-let supabaseClient: ReturnType<typeof createClient> | undefined;
+import { publicEnv } from "@/lib/public-env";
+import type { Database } from "@/types/database.types";
 
+let supabaseClient: SupabaseClient<Database> | undefined;
+
+/** Browser client with the publishable key. RLS limits it to the public catalog. */
 export function getSupabaseBrowserClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabasePublishableKey =
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-
-  if (!supabaseUrl || !supabasePublishableKey) {
-    throw new Error(
-      "Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY in .env.local.",
-    );
-  }
-
-  if (!supabaseClient) {
-    supabaseClient = createClient(supabaseUrl, supabasePublishableKey);
-  }
-
+  supabaseClient ??= createClient<Database>(
+    publicEnv.NEXT_PUBLIC_SUPABASE_URL,
+    publicEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    { auth: { persistSession: false, autoRefreshToken: false } },
+  );
   return supabaseClient;
 }

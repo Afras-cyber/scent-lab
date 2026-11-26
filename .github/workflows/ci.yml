@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    env:
+      # Dummy values: the build only checks their shape. No secrets in CI yet.
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
+      SUPABASE_SECRET_KEY: ci-placeholder
+      # src/config still has client TODOs; production deploys build without this.
+      ALLOW_CONFIG_PLACEHOLDERS: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npm audit --omit=dev --audit-level=high
+
+  database:
+    name: Migrations, RLS tests, types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Start Postgres and apply migrations + seed
+        run: npx supabase db start
+      - name: Lint SQL functions
+        run: npx supabase db lint --level warning --fail-on error
+      - name: RLS and checkout tests (pgTAP)
+        run: npx supabase test db
+      - name: Generated types are up to date
+        run: |
+          npm run db:types
+          git diff --exit-code src/types/database.types.ts
