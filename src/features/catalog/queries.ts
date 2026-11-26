@@ -16,6 +16,7 @@ import type {
   ProductDetail,
   ProductRow,
   Review,
+  ReviewSummary,
 } from "./types";
 
 // Public catalog reads. RLS already hides inactive products, variants and
@@ -220,4 +221,29 @@ export async function getLatestReviews(limit = 6): Promise<Review[]> {
     .overrideTypes<ReviewRow[], { merge: false }>();
   if (error) throw new Error(`getLatestReviews: ${error.message}`);
   return data.map(toReview);
+}
+
+/** Average, count and 1–5 star breakdown of all approved reviews. */
+export async function getReviewSummary(): Promise<ReviewSummary> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CATALOG_TAGS.reviews);
+
+  // RLS returns approved reviews only. Fine for the expected volume; switch
+  // to an aggregate view if it grows to many thousands.
+  const { data, error } = await createSupabaseServerClient()
+    .from("reviews")
+    .select("rating");
+  if (error) throw new Error(`getReviewSummary: ${error.message}`);
+
+  const counts: ReviewSummary["counts"] = [0, 0, 0, 0, 0];
+  for (const { rating } of data) {
+    if (rating >= 1 && rating <= 5) counts[rating - 1]! += 1;
+  }
+  const total = counts.reduce((sum, n) => sum + n, 0);
+  const average =
+    total === 0
+      ? 0
+      : counts.reduce((sum, n, i) => sum + n * (i + 1), 0) / total;
+  return { average, total, counts };
 }

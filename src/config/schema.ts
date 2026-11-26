@@ -174,12 +174,105 @@ export const featuresConfigSchema = z.object({
   turnstile: z.boolean(),
 });
 
+const slugRef = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/);
+const sectionHeading = {
+  eyebrow: z.string().min(1),
+  title: z.string().min(1),
+};
+
+export const homeConfigSchema = z.object({
+  collections: z.object({
+    ...sectionHeading,
+    viewAll: link,
+    flagshipEyebrow: z.string().min(1),
+  }),
+  trending: z.object({
+    ...sectionHeading,
+    viewAll: link,
+    // Each tab filters by gender or by collection slug.
+    tabs: z
+      .array(
+        z.union([
+          z.object({
+            label: z.string().min(1),
+            gender: z.enum(["men", "women", "unisex"]),
+          }),
+          z.object({ label: z.string().min(1), collection: slugRef }),
+        ]),
+      )
+      .min(1)
+      .readonly(),
+  }),
+  discoveryPromo: z.object({
+    eyebrow: z.string().min(1),
+    productSlug: slugRef,
+    text: z.string().min(1),
+    ctaLabel: z.string().min(1),
+  }),
+  helpPromo: z.object({
+    ...sectionHeading,
+    text: z.string().min(1),
+    ctaLabel: z.string().min(1),
+  }),
+  budget: z.object({
+    ...sectionHeading,
+    tiers: z
+      .array(
+        z.object({
+          kind: z.enum(["under", "from"]),
+          amount: z.int().positive(),
+          text: z.string().min(1),
+        }),
+      )
+      .min(1)
+      .readonly(),
+  }),
+  featuredCollection: z.object({
+    ...sectionHeading,
+    collectionSlug: slugRef,
+    text: z.string().min(1),
+    ctaLabel: z.string().min(1),
+  }),
+  whyAyad: z.object({
+    ...sectionHeading,
+    items: z
+      .array(
+        z.object({
+          icon: z.enum(["drop", "clock", "cash", "truck"]),
+          title: z.string().min(1),
+          text: z.string().min(1),
+        }),
+      )
+      .min(1)
+      .readonly(),
+  }),
+  orderSteps: z.object({
+    ...sectionHeading,
+    steps: z
+      .array(z.object({ title: z.string().min(1), text: z.string().min(1) }))
+      .min(1)
+      .readonly(),
+  }),
+  trackOrder: z.object({
+    ...sectionHeading,
+    text: z.string().min(1),
+    formTitle: z.string().min(1),
+    statuses: z.array(z.string().min(1)).min(1).readonly(),
+  }),
+  reviews: z.object(sectionHeading),
+  newsletter: z.object({
+    title: z.string().min(1),
+    text: z.string().min(1),
+  }),
+});
+
 export type SiteConfig = z.infer<typeof siteConfigSchema>;
 export type CommerceConfig = z.infer<typeof commerceConfigSchema>;
 export type WhatsappConfig = z.infer<typeof whatsappConfigSchema>;
 export type NavigationConfig = z.infer<typeof navigationConfigSchema>;
 export type SeoConfig = z.infer<typeof seoConfigSchema>;
 export type FeaturesConfig = z.infer<typeof featuresConfigSchema>;
+export type HomeConfig = z.infer<typeof homeConfigSchema>;
 export type PaymentMethod = z.infer<typeof paymentMethodSchema>;
 
 // --- Placeholder detection -------------------------------------------------
@@ -225,6 +318,7 @@ type ConfigBundle = {
   navigation: unknown;
   seo: unknown;
   features: unknown;
+  home: unknown;
 };
 
 const schemas = {
@@ -234,6 +328,7 @@ const schemas = {
   navigation: navigationConfigSchema,
   seo: seoConfigSchema,
   features: featuresConfigSchema,
+  home: homeConfigSchema,
 } as const;
 
 /**

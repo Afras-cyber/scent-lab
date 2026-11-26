@@ -1,5 +1,6 @@
 import { commerceConfig } from "./commerce.config";
 import { featuresConfig } from "./features.config";
+import { homeConfig } from "./home.config";
 import { navigationConfig } from "./navigation.config";
 import { validateConfig } from "./schema";
 import { seoConfig } from "./seo.config";
@@ -15,6 +16,7 @@ export const allConfigs = {
   navigation: navigationConfig,
   seo: seoConfig,
   features: featuresConfig,
+  home: homeConfig,
 };
 
 /** Throws when any config is invalid, or (strict) still has placeholders. */

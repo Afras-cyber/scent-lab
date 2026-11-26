@@ -10,7 +10,7 @@ AYAD (ayadscentlab.com) is an online perfume shop for Sri Lanka (LKR, Cash on De
 
 The full spec is `docs/AYAD_PROJECT_STRUCTURE.md`. Read the relevant section before building a feature; it covers the folder layout, database schema, RLS rules, checkout, tracking and WhatsApp flows, and the security checklist. Note that `/docs` is in `.gitignore`, so it exists only locally.
 
-**Status:** Phase 0 (foundation) is done: tooling, theme tokens and fonts, `src/config`, env validation, the full Supabase schema with RLS, `create_order` / `record_payment`, storage buckets, seed data, pgTAP + Vitest tests and CI. The storefront is a placeholder page. Next is Phase 1 (storefront, read-only); see spec §20. The architecture below is the target; build towards it.
+**Status:** Phase 0 (foundation) is done: tooling, theme tokens and fonts, `src/config`, env validation, the full Supabase schema with RLS, `create_order` / `record_payment`, storage buckets, seed data, pgTAP + Vitest tests and CI. Phase 1 (storefront, read-only; spec §20) is in progress: the site chrome, the catalog data layer, `ProductCard` and the Home page (`components/home/`, copy in `config/home.config.ts`) are done; next are shop, collection, search and product pages and quick view. The architecture below is the target; build towards it.
 
 ## Commands
 

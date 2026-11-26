@@ -4,9 +4,22 @@ import { PHASE_PRODUCTION_BUILD } from "next/constants";
 import { assertConfigReady } from "./src/config/check";
 import { formatEnvIssues, parseServerEnv } from "./src/lib/env-schema";
 
+// Product images that are not in public/ live in the public `products` bucket
+// (see resolveImagePath in src/lib/images.ts).
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
 const nextConfig: NextConfig = {
   experimental: {
     agentFeedback: true,
+  },
+  images: {
+    remotePatterns: supabaseUrl
+      ? [
+          new URL(
+            `${supabaseUrl.replace(/\/$/, "")}/storage/v1/object/public/products/**`,
+          ),
+        ]
+      : [],
   },
   cacheComponents: true,
   partialPrefetching: true,

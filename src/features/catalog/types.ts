@@ -70,6 +70,13 @@ export type Review = {
   product?: { slug: string; name: string };
 };
 
+export type ReviewSummary = {
+  average: number;
+  total: number;
+  /** Review counts for 1, 2, 3, 4 and 5 stars. */
+  counts: [number, number, number, number, number];
+};
+
 export type Banner = {
   id: string;
   title: string;
