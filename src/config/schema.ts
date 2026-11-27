@@ -101,6 +101,8 @@ const waMessage = z.string().min(1).max(1000);
 export const whatsappConfigSchema = z.object({
   messages: z.object({
     product: waMessage, // {product}, {size}, {url}
+    productOrder: waMessage, // {qty}, {product}, {size}, {total}, {url}
+    share: waMessage, // {product}, {url}
     orderPlaced: waMessage, // {orderCode}, {total}
     orderHelp: waMessage, // {orderCode}
     notifyStock: waMessage, // {product}, {url}
@@ -399,6 +401,99 @@ export const collectionsConfigSchema = z.object({
   defaultUnit: countUnit,
 });
 
+const textItem = z.object({
+  title: z.string().min(1),
+  text: z.string().min(1),
+});
+
+export const productConfigSchema = z.object({
+  buyBox: z.object({
+    verifiedBuyers: z.string().min(1),
+    inStock: z.string().min(1),
+    inStockNote: z.string().min(1),
+    lowStock: z.string().includes("{count}"),
+    lowStockNote: z.string().min(1),
+    outOfStock: z.string().min(1),
+    outOfStockNote: z.string().min(1),
+    size: z.string().min(1),
+    soldOut: z.string().min(1),
+    save: z.string().includes("{percent}"),
+    quantity: z.string().min(1),
+    addToCart: z.string().min(1),
+    cartSoon: z.string().min(1),
+    orderWhatsapp: z.string().min(1),
+    orderWhatsappNote: z.string().min(1),
+    notifyWhatsapp: z.string().min(1),
+    notifyWhatsappNote: z.string().min(1),
+    share: z.string().min(1),
+    shareWhatsapp: z.string().min(1),
+    copyLink: z.string().min(1),
+    linkCopied: z.string().min(1),
+  }),
+  trustBadges: z
+    .array(
+      z.object({
+        icon: z.enum(["cash", "truck", "shield", "clock"]),
+        label: z.string().min(1),
+      }),
+    )
+    .min(1)
+    .max(4)
+    .readonly(),
+  delivery: z.object({
+    title: z.string().min(1),
+    placeholder: z.string().min(1),
+    check: z.string().min(1),
+    result: z.string().min(1), // {district}, {fee}, {days}
+    free: z.string().includes("{threshold}"),
+  }),
+  specs: z.object({
+    longevity: z.string().min(1),
+    projection: z.string().min(1),
+    bestFor: z.string().min(1),
+    season: z.string().min(1),
+  }),
+  scentProfile: z.object({
+    ...sectionHeading,
+    pyramidTitle: z.string().min(1),
+    tiers: z.object({
+      top: z.string().min(1),
+      heart: z.string().min(1),
+      base: z.string().min(1),
+    }),
+    performanceTitle: z.string().min(1),
+    metrics: z.object({
+      longevity: z.string().min(1),
+      projection: z.string().min(1),
+      sweetness: z.string().min(1),
+      freshness: z.string().min(1),
+    }),
+    levels: z.array(z.string().min(1)).length(5).readonly(),
+    bestFor: z.string().min(1),
+  }),
+  details: z.object({
+    description: z.string().min(1),
+    sections: z.array(textItem).readonly(),
+    faqTitle: z.string().min(1),
+    faq: z
+      .array(
+        z.object({ question: z.string().min(1), answer: z.string().min(1) }),
+      )
+      .readonly(),
+  }),
+  reviews: z.object({
+    ...sectionHeading,
+    empty: z.string().min(1),
+    writeReview: z.string().min(1),
+    writeReviewMessage: waMessage, // {product}
+  }),
+  related: z.object(sectionHeading),
+  quickView: z.object({
+    viewDetails: z.string().min(1),
+    error: z.string().min(1),
+  }),
+});
+
 export type SiteConfig = z.infer<typeof siteConfigSchema>;
 export type CommerceConfig = z.infer<typeof commerceConfigSchema>;
 export type WhatsappConfig = z.infer<typeof whatsappConfigSchema>;
@@ -409,6 +504,7 @@ export type HomeConfig = z.infer<typeof homeConfigSchema>;
 export type ShopConfig = z.infer<typeof shopConfigSchema>;
 export type SearchConfig = z.infer<typeof searchConfigSchema>;
 export type CollectionsConfig = z.infer<typeof collectionsConfigSchema>;
+export type ProductConfig = z.infer<typeof productConfigSchema>;
 export type PaymentMethod = z.infer<typeof paymentMethodSchema>;
 
 // --- Placeholder detection -------------------------------------------------
@@ -458,6 +554,7 @@ type ConfigBundle = {
   shop: unknown;
   search: unknown;
   collections: unknown;
+  product: unknown;
 };
 
 const schemas = {
@@ -471,6 +568,7 @@ const schemas = {
   shop: shopConfigSchema,
   search: searchConfigSchema,
   collections: collectionsConfigSchema,
+  product: productConfigSchema,
 } as const;
 
 /**

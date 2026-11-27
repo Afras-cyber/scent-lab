@@ -6,6 +6,9 @@ import type { WhatsappConfig } from "./schema";
 export const whatsappConfig = {
   messages: {
     product: "Hello AYAD, I'd like to order {product} ({size}).\n{url}",
+    productOrder:
+      "Hello AYAD, I'd like to order:\n{qty} × {product} ({size}) – {total}\n{url}",
+    share: "{product} from AYAD: {url}",
     orderPlaced:
       "Hello AYAD, I just placed order {orderCode} (total {total}). Please confirm.",
     orderHelp: "Hello AYAD, I have a question about order {orderCode}.",

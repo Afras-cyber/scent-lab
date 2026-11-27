@@ -3,11 +3,15 @@ import { resolveImagePath } from "@/lib/images";
 
 import type {
   CatalogImage,
+  CatalogNote,
   Gender,
+  NoteTier,
   ProductCardData,
   ProductDetail,
   ProductRow,
   ProductVariant,
+  ScentProfile,
+  Season,
 } from "./types";
 
 const bySortOrder = (a: { sort_order: number }, b: { sort_order: number }) =>
@@ -22,6 +26,37 @@ function toGender(value: string | null): Gender | null {
   return value === "men" || value === "women" || value === "unisex"
     ? value
     : null;
+}
+
+const NOTE_TIERS: readonly NoteTier[] = ["top", "heart", "base"];
+const SEASONS: readonly Season[] = ["spring", "summer", "autumn", "winter"];
+
+function toLevel(value: number | null | undefined): number | null {
+  return value != null && value >= 1 && value <= 5 ? value : null;
+}
+
+/** Scent profile columns, with notes grouped into top, heart and base. */
+export function toScentProfile(row: ProductRow): ScentProfile {
+  const pyramid: Record<NoteTier, CatalogNote[]> = {
+    top: [],
+    heart: [],
+    base: [],
+  };
+  for (const n of [...row.product_notes].sort(bySortOrder)) {
+    const tier = NOTE_TIERS.find((t) => t === n.tier);
+    if (tier && n.notes) pyramid[tier].push(n.notes);
+  }
+  return {
+    concentration: row.concentration ?? null,
+    longevity: row.longevity ?? null,
+    projection: toLevel(row.projection),
+    sweetness: toLevel(row.sweetness),
+    freshness: toLevel(row.freshness),
+    // Calendar order, whatever order staff entered them in.
+    seasons: SEASONS.filter((season) => row.seasons?.includes(season)),
+    story: row.scent_story ?? null,
+    pyramid,
+  };
 }
 
 function toImages(row: ProductRow): CatalogImage[] {
@@ -116,5 +151,19 @@ export function toProductDetail(row: ProductRow): ProductDetail | null {
     collections: row.product_collections.flatMap((c) =>
       c.collections ? [c.collections] : [],
     ),
+    profile: toScentProfile(row),
   };
+}
+
+// A full longevity bar means this many hours or more.
+const FULL_LONGEVITY_HOURS = 15;
+
+/**
+ * Bar fill (0–1) for a longevity text, from its largest number of hours:
+ * "8–12 hours" → 0.8. Null when the text has no number.
+ */
+export function longevityShare(longevity: string | null): number | null {
+  const hours = (longevity?.match(/\d+/g) ?? []).map(Number);
+  if (hours.length === 0) return null;
+  return Math.min(Math.max(...hours) / FULL_LONGEVITY_HOURS, 1);
 }

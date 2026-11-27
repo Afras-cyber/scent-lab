@@ -53,11 +53,34 @@ export type ProductCardData = {
   sizes: string[];
 };
 
+export type NoteTier = "top" | "heart" | "base";
+export type Season = "spring" | "summer" | "autumn" | "winter";
+
+/** Product page "Scent profile". Levels run 1–5; null hides that bar. */
+export type ScentProfile = {
+  concentration: string | null;
+  longevity: string | null;
+  projection: number | null;
+  sweetness: number | null;
+  freshness: number | null;
+  seasons: Season[];
+  story: string | null;
+  /** Notes grouped for the pyramid; untiered notes are left out. */
+  pyramid: Record<NoteTier, CatalogNote[]>;
+};
+
 export type ProductDetail = ProductCardData & {
   description: string | null;
   variants: ProductVariant[];
   images: CatalogImage[];
   collections: { slug: string; name: string }[];
+  profile: ScentProfile;
+};
+
+export type DeliveryZone = {
+  district: string;
+  fee: number;
+  estimatedDays: string;
 };
 
 export type Review = {
@@ -103,6 +126,14 @@ export type ProductRow = {
   rating_avg: number;
   rating_count: number;
   created_at: string;
+  // Scent profile: only the product page query selects these.
+  concentration?: string | null;
+  longevity?: string | null;
+  projection?: number | null;
+  sweetness?: number | null;
+  freshness?: number | null;
+  seasons?: string[];
+  scent_story?: string | null;
   product_variants: {
     id: string;
     label: string;
@@ -120,6 +151,7 @@ export type ProductRow = {
   }[];
   product_notes: {
     sort_order: number;
+    tier?: string | null;
     notes: { slug: string; name: string } | null;
   }[];
   product_collections: {

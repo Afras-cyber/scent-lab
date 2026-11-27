@@ -1,4 +1,4 @@
-import { BellRing, Eye, ShoppingCart } from "lucide-react";
+import { BellRing, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -9,13 +9,14 @@ import { cn } from "@/lib/utils";
 import { fillMessage, waLink } from "@/lib/whatsapp/link";
 
 import { Price } from "./price";
+import { QuickViewButton } from "./quick-view-button";
 import { Rating } from "./rating";
 
 export function productHref(slug: string) {
   return `/product/${slug}`;
 }
 
-function badgeFor(product: ProductCardData) {
+export function badgeFor(product: ProductCardData) {
   if (!product.inStock) return "Sold out";
   if (product.onSale) return "Sale";
   if (product.isFeatured) return "Featured";
@@ -70,14 +71,12 @@ export function ProductCard({
             {badge}
           </span>
         )}
-        {/* Quick view (a dialog) comes with the shop page; for now it opens the product. */}
-        <Link
+        <QuickViewButton
+          slug={product.slug}
+          name={product.name}
           href={href}
-          aria-label={`View ${product.name}`}
-          className="absolute top-2 right-2 z-10 inline-flex size-8 items-center justify-center rounded-full bg-white text-brand-deep shadow-sm transition-transform hover:scale-105 lg:size-9"
-        >
-          <Eye className="size-4" aria-hidden />
-        </Link>
+          className="absolute top-2 right-2 z-10 size-8 lg:size-9"
+        />
       </div>
 
       <div className="flex flex-1 flex-col items-center gap-1.5">

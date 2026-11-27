@@ -1,6 +1,6 @@
 -- RLS: the browser (anon) can read the active catalog and nothing else.
 begin;
-select plan(22);
+select plan(26);
 
 select is(
   (select count(*) from pg_tables where schemaname = 'public' and not rowsecurity),
@@ -43,6 +43,17 @@ select throws_ok(
   '42501', null, 'anon cannot insert products'
 );
 
+-- Scent profile columns are part of the public catalog.
+select is(
+  (select longevity from public.products where slug = 'oud-royale'),
+  '8–12 hours',
+  'anon can read the scent profile'
+);
+select ok(
+  (select count(*) from public.product_notes where tier is not null) > 0,
+  'anon can read note tiers'
+);
+
 -- Reviews: approved only, and the order link is not exposed.
 select is(
   (select count(*) from public.reviews where customer_name = 'Pending Person'),
@@ -75,5 +86,16 @@ select throws_ok(
 );
 
 reset role;
+
+-- Scent profile constraints.
+select throws_ok(
+  $$update public.products set projection = 6 where slug = 'oud-royale'$$,
+  '23514', null, 'performance levels stop at 5'
+);
+select throws_ok(
+  $$update public.products set seasons = array['monsoon'] where slug = 'oud-royale'$$,
+  '23514', null, 'seasons must be known values'
+);
+
 select * from finish();
 rollback;

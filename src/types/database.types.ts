@@ -249,14 +249,14 @@ isOneToOne: false
                   ]
                 },"product_notes": {
                   Row: {
-                    "note_id": string,"product_id": string,"sort_order": number
+                    "note_id": string,"product_id": string,"sort_order": number,"tier": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "note_id": string,"product_id": string,"sort_order"?: number
+                    "note_id": string,"product_id": string,"sort_order"?: number,"tier"?: string | null
                   }
                   Update: {
-                    "note_id"?: string,"product_id"?: string,"sort_order"?: number
+                    "note_id"?: string,"product_id"?: string,"sort_order"?: number,"tier"?: string | null
                   }
                   Relationships: [
                     {
@@ -295,14 +295,14 @@ isOneToOne: false
                   ]
                 },"products": {
                   Row: {
-                    "created_at": string,"description": string | null,"gender": string | null,"id": string,"is_active": boolean,"is_featured": boolean,"name": string,"occasions": (string)[],"rating_avg": number,"rating_count": number,"short_description": string | null,"slug": string,"updated_at": string
+                    "concentration": string | null,"created_at": string,"description": string | null,"freshness": number | null,"gender": string | null,"id": string,"is_active": boolean,"is_featured": boolean,"longevity": string | null,"name": string,"occasions": (string)[],"projection": number | null,"rating_avg": number,"rating_count": number,"scent_story": string | null,"seasons": (string)[],"short_description": string | null,"slug": string,"sweetness": number | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"description"?: string | null,"gender"?: string | null,"id"?: string,"is_active"?: boolean,"is_featured"?: boolean,"name": string,"occasions"?: (string)[],"rating_avg"?: number,"rating_count"?: number,"short_description"?: string | null,"slug": string,"updated_at"?: string
+                    "concentration"?: string | null,"created_at"?: string,"description"?: string | null,"freshness"?: number | null,"gender"?: string | null,"id"?: string,"is_active"?: boolean,"is_featured"?: boolean,"longevity"?: string | null,"name": string,"occasions"?: (string)[],"projection"?: number | null,"rating_avg"?: number,"rating_count"?: number,"scent_story"?: string | null,"seasons"?: (string)[],"short_description"?: string | null,"slug": string,"sweetness"?: number | null,"updated_at"?: string
                   }
                   Update: {
-                    "created_at"?: string,"description"?: string | null,"gender"?: string | null,"id"?: string,"is_active"?: boolean,"is_featured"?: boolean,"name"?: string,"occasions"?: (string)[],"rating_avg"?: number,"rating_count"?: number,"short_description"?: string | null,"slug"?: string,"updated_at"?: string
+                    "concentration"?: string | null,"created_at"?: string,"description"?: string | null,"freshness"?: number | null,"gender"?: string | null,"id"?: string,"is_active"?: boolean,"is_featured"?: boolean,"longevity"?: string | null,"name"?: string,"occasions"?: (string)[],"projection"?: number | null,"rating_avg"?: number,"rating_count"?: number,"scent_story"?: string | null,"seasons"?: (string)[],"short_description"?: string | null,"slug"?: string,"sweetness"?: number | null,"updated_at"?: string
                   }
                   Relationships: [
                     

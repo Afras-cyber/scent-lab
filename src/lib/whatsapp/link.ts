@@ -20,3 +20,8 @@ export function waLink(
   const number = siteConfig.contact.whatsapp.number;
   return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 }
+
+/** Share link: WhatsApp asks the customer which chat to send `message` to. */
+export function waShareLink(message: string): string {
+  return `https://wa.me/?text=${encodeURIComponent(message)}`;
+}

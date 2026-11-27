@@ -2,6 +2,7 @@ import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
 
+import { commerceConfig } from "@/config";
 import { resolveImagePath } from "@/lib/images";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -12,6 +13,7 @@ import type {
   Banner,
   CatalogCollection,
   CatalogNote,
+  DeliveryZone,
   ProductCardData,
   ProductDetail,
   ProductRow,
@@ -26,6 +28,8 @@ export const CATALOG_TAGS = {
   collections: "collections",
   banners: "banners",
   reviews: "reviews",
+  deliveryZones: "delivery-zones",
+  settings: "settings",
 } as const;
 
 const PRODUCT_COLUMNS = `
@@ -34,6 +38,17 @@ const PRODUCT_COLUMNS = `
   product_variants (id, label, price_lkr, compare_at_lkr, stock, sort_order),
   product_images (path, alt, width, height, sort_order),
   product_notes (sort_order, notes (slug, name)),
+  product_collections (collections (slug, name))
+`;
+
+// The product page adds the long text, the scent profile and note tiers.
+const DETAIL_COLUMNS = `
+  id, slug, name, short_description, description, gender, occasions, is_featured,
+  rating_avg, rating_count, created_at,
+  concentration, longevity, projection, sweetness, freshness, seasons, scent_story,
+  product_variants (id, label, price_lkr, compare_at_lkr, stock, sort_order),
+  product_images (path, alt, width, height, sort_order),
+  product_notes (sort_order, tier, notes (slug, name)),
   product_collections (collections (slug, name))
 `;
 
@@ -74,7 +89,7 @@ export async function getProductBySlug(
 
   const { data, error } = await createSupabaseServerClient()
     .from("products")
-    .select(`${PRODUCT_COLUMNS}, description`)
+    .select(DETAIL_COLUMNS)
     .eq("slug", slug)
     .maybeSingle()
     .overrideTypes<ProductRow | null, { merge: false }>();
@@ -223,17 +238,22 @@ export async function getLatestReviews(limit = 6): Promise<Review[]> {
   return data.map(toReview);
 }
 
-/** Average, count and 1–5 star breakdown of all approved reviews. */
-export async function getReviewSummary(): Promise<ReviewSummary> {
+/**
+ * Average, count and 1–5 star breakdown of approved reviews: all of them, or
+ * one product's when `productId` is given.
+ */
+export async function getReviewSummary(
+  productId?: string,
+): Promise<ReviewSummary> {
   "use cache";
   cacheLife("hours");
   cacheTag(CATALOG_TAGS.reviews);
 
   // RLS returns approved reviews only. Fine for the expected volume; switch
   // to an aggregate view if it grows to many thousands.
-  const { data, error } = await createSupabaseServerClient()
-    .from("reviews")
-    .select("rating");
+  let query = createSupabaseServerClient().from("reviews").select("rating");
+  if (productId) query = query.eq("product_id", productId);
+  const { data, error } = await query;
   if (error) throw new Error(`getReviewSummary: ${error.message}`);
 
   const counts: ReviewSummary["counts"] = [0, 0, 0, 0, 0];
@@ -246,4 +266,40 @@ export async function getReviewSummary(): Promise<ReviewSummary> {
       ? 0
       : counts.reduce((sum, n, i) => sum + n * (i + 1), 0) / total;
   return { average, total, counts };
+}
+
+/** Active delivery districts with their fee, for the product page checker. */
+export async function getDeliveryZones(): Promise<DeliveryZone[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CATALOG_TAGS.deliveryZones);
+
+  const { data, error } = await createSupabaseServerClient()
+    .from("delivery_zones")
+    .select("district, fee_lkr, estimated_days")
+    .order("sort_order");
+  if (error) throw new Error(`getDeliveryZones: ${error.message}`);
+  return data.map((z) => ({
+    district: z.district,
+    fee: z.fee_lkr,
+    estimatedDays: z.estimated_days,
+  }));
+}
+
+/** Free-delivery threshold: `site_settings` override, else the config default. */
+export async function getFreeDeliveryThreshold(): Promise<number> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CATALOG_TAGS.settings);
+
+  const { data, error } = await createSupabaseServerClient()
+    .from("site_settings")
+    .select("value")
+    .eq("key", "free_delivery_threshold_lkr")
+    .maybeSingle();
+  if (error) throw new Error(`getFreeDeliveryThreshold: ${error.message}`);
+  const value = Number(data?.value);
+  return Number.isInteger(value) && value >= 0
+    ? value
+    : commerceConfig.freeDeliveryThresholdLkr;
 }

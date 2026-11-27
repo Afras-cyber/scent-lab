@@ -201,6 +201,74 @@ join inserted i using (slug)
 cross join lateral unnest(d.collection_slugs) as cs (slug)
 join public.collections c on c.slug = cs.slug;
 
+-- Extra gallery images for one product, to exercise the thumbnails and lightbox.
+insert into public.product_images (product_id, path, alt, width, height, sort_order)
+select p.id, i.path, 'Oud Royale ' || i.alt, 280, 232, i.sort_order
+from public.products p
+cross join (values
+  ('/images/collections/Bottle.png', 'bottle, side view', 1),
+  ('/images/products/product_image.png', 'gift box', 2),
+  ('/images/collections/Bottle.png', 'on the dresser', 3),
+  ('/images/products/product_image.png', 'with the 6ml attar', 4),
+  ('/images/collections/Bottle.png', 'cap detail', 5),
+  ('/images/products/product_image.png', 'in hand', 6)
+) as i (path, alt, sort_order)
+where p.slug = 'oud-royale';
+
+-- Scent profile. Note tiers follow how each note usually behaves; the
+-- performance levels are rough guesses from the notes until the client
+-- supplies real values. Oud Royale matches the Figma product page.
+update public.product_notes pn
+set tier = case
+  when n.slug in ('citrus', 'saffron') then 'top'
+  when n.slug in ('rose', 'jasmine', 'iris', 'honey') then 'heart'
+  else 'base'
+end
+from public.notes n
+where n.id = pn.note_id;
+
+with profile as (
+  select
+    p.id,
+    bool_or(v.label like '%spray%') as is_spray,
+    bool_or(v.label like '%attar%') as is_attar,
+    array_agg(n.slug) as notes
+  from public.products p
+  join public.product_variants v on v.product_id = p.id
+  join public.product_notes pn on pn.product_id = p.id
+  join public.notes n on n.id = pn.note_id
+  group by p.id
+),
+levels as (
+  select
+    id, is_spray, is_attar,
+    case when notes && array['oud', 'leather', 'smoke'] then 4
+         when notes && array['amber', 'saffron'] then 3 else 2 end as projection,
+    case when notes && array['vanilla', 'honey'] then 4
+         when notes && array['amber', 'rose'] then 3 else 2 end as sweetness,
+    case when notes && array['citrus'] then 4
+         when notes && array['musk', 'iris', 'cedar'] then 3 else 1 end as freshness
+  from profile
+)
+update public.products p
+set concentration = case when l.is_spray and not l.is_attar then 'Eau de Parfum'
+                         when l.is_attar and not l.is_spray then 'Attar oil' end,
+    longevity = case when l.is_attar then '8–12 hours' when l.is_spray then '6–8 hours' end,
+    projection = l.projection,
+    sweetness = l.sweetness,
+    freshness = l.freshness,
+    seasons = case when l.freshness >= 3 then array['spring', 'summer']
+                   else array['autumn', 'winter'] end
+from levels l
+where l.id = p.id;
+
+update public.products
+set longevity = '8–12 hours', projection = 4, sweetness = 2, freshness = 1,
+    seasons = array['autumn', 'winter'],
+    scent_story = 'A warm, smoky oud opens with a flash of leather, then dries down to a '
+      || 'smouldering base that stays close for hours.'
+where slug = 'oud-royale';
+
 insert into public.reviews (product_id, customer_name, location, rating, body, is_verified, status, approved_at)
 select p.id, r.customer_name, r.location, r.rating, r.body, true, 'approved', now()
 from (values

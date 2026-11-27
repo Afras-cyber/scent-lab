@@ -3,6 +3,7 @@ import { commerceConfig } from "./commerce.config";
 import { featuresConfig } from "./features.config";
 import { homeConfig } from "./home.config";
 import { navigationConfig } from "./navigation.config";
+import { productConfig } from "./product.config";
 import { validateConfig } from "./schema";
 import { searchConfig } from "./search.config";
 import { seoConfig } from "./seo.config";
@@ -23,6 +24,7 @@ export const allConfigs = {
   shop: shopConfig,
   search: searchConfig,
   collections: collectionsConfig,
+  product: productConfig,
 };
 
 /** Throws when any config is invalid, or (strict) still has placeholders. */

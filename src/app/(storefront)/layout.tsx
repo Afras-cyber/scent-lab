@@ -3,6 +3,7 @@ import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { TopBar } from "@/components/layout/top-bar";
 import { WhatsappFloat } from "@/components/layout/whatsapp-float";
+import { QuickViewDialog } from "@/components/product/quick-view-dialog";
 import { waLink } from "@/lib/whatsapp/link";
 
 export default function StorefrontLayout({ children }: LayoutProps<"/">) {
@@ -21,6 +22,7 @@ export default function StorefrontLayout({ children }: LayoutProps<"/">) {
       </main>
       <Footer />
       <WhatsappFloat />
+      <QuickViewDialog />
       <BottomNav whatsappHref={waLink()} />
     </>
   );

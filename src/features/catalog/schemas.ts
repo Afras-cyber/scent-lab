@@ -120,3 +120,9 @@ export function countActiveFilters(filters: ShopFilters): number {
   if (filters.q) count += 1;
   return count;
 }
+
+/** Same rule as the `products.slug` check constraint. */
+export const productSlugSchema = z
+  .string()
+  .max(120)
+  .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/);

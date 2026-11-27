@@ -7,10 +7,17 @@ import {
   paginate,
   priceBounds,
 } from "@/features/catalog/filter";
-import { parseSizes, toProductCard } from "@/features/catalog/mappers";
+import {
+  longevityShare,
+  parseSizes,
+  toProductCard,
+  toProductDetail,
+  toScentProfile,
+} from "@/features/catalog/mappers";
 import {
   countActiveFilters,
   parseShopFilters,
+  productSlugSchema,
   shopFiltersToSearch,
 } from "@/features/catalog/schemas";
 import type { ProductCardData, ProductRow } from "@/features/catalog/types";
@@ -143,6 +150,89 @@ describe("toProductCard", () => {
     )!;
     expect(soldOut).toMatchObject({ inStock: false, lowStock: false });
     expect(toProductCard(row({ product_variants: [] }))).toBeNull();
+  });
+});
+
+describe("toScentProfile", () => {
+  it("groups tiered notes in sort order and skips untiered ones", () => {
+    const profile = toScentProfile(
+      row({
+        product_notes: [
+          {
+            sort_order: 3,
+            tier: "base",
+            notes: { slug: "musk", name: "Musk" },
+          },
+          { sort_order: 1, tier: "base", notes: { slug: "oud", name: "Oud" } },
+          {
+            sort_order: 2,
+            tier: "top",
+            notes: { slug: "saffron", name: "Saffron" },
+          },
+          { sort_order: 4, tier: null, notes: { slug: "rose", name: "Rose" } },
+          { sort_order: 5, tier: "odd", notes: { slug: "iris", name: "Iris" } },
+        ],
+      }),
+    );
+    expect(profile.pyramid.top.map((n) => n.slug)).toEqual(["saffron"]);
+    expect(profile.pyramid.heart).toEqual([]);
+    expect(profile.pyramid.base.map((n) => n.slug)).toEqual(["oud", "musk"]);
+  });
+
+  it("keeps valid levels, drops out-of-range ones and orders seasons", () => {
+    const profile = toScentProfile(
+      row({
+        concentration: "Attar oil",
+        longevity: "8–12 hours",
+        projection: 4,
+        sweetness: 0,
+        freshness: 9,
+        seasons: ["winter", "monsoon", "autumn"],
+        scent_story: "Smoky.",
+      }),
+    );
+    expect(profile).toMatchObject({
+      concentration: "Attar oil",
+      longevity: "8–12 hours",
+      projection: 4,
+      sweetness: null,
+      freshness: null,
+      seasons: ["autumn", "winter"],
+      story: "Smoky.",
+    });
+  });
+
+  it("defaults to an empty profile when the columns weren't selected", () => {
+    const detail = toProductDetail(row())!;
+    expect(detail.profile).toEqual({
+      concentration: null,
+      longevity: null,
+      projection: null,
+      sweetness: null,
+      freshness: null,
+      seasons: [],
+      story: null,
+      pyramid: { top: [], heart: [], base: [] },
+    });
+  });
+});
+
+describe("longevityShare", () => {
+  it("uses the largest number of hours, capped at a full bar", () => {
+    expect(longevityShare("8–12 hours")).toBeCloseTo(0.8);
+    expect(longevityShare("6 hours")).toBeCloseTo(0.4);
+    expect(longevityShare("24h+")).toBe(1);
+    expect(longevityShare("All day")).toBeNull();
+    expect(longevityShare(null)).toBeNull();
+  });
+});
+
+describe("productSlugSchema", () => {
+  it("accepts catalog slugs only", () => {
+    expect(productSlugSchema.safeParse("oud-royale").success).toBe(true);
+    expect(productSlugSchema.safeParse("Oud Royale").success).toBe(false);
+    expect(productSlugSchema.safeParse("../etc").success).toBe(false);
+    expect(productSlugSchema.safeParse("a-").success).toBe(false);
   });
 });
 
