@@ -12,7 +12,12 @@ import {
 import type { ShopFilters } from "@/features/catalog/schemas";
 import { cn } from "@/lib/utils";
 
-import { patchFilters, shopHref } from "./shop-href";
+import {
+  patchFilters,
+  scopeHref,
+  SHOP_SCOPE,
+  type ListingScope,
+} from "./shop-href";
 
 type ShopNavigation = {
   /** Current filters, updated immediately while the next page loads. */
@@ -22,6 +27,8 @@ type ShopNavigation = {
   /** Replaces all filters, e.g. Clear all. */
   replace: (filters: ShopFilters) => void;
   pending: boolean;
+  /** The page the listing lives on (path, locked and kept filters). */
+  scope: ListingScope;
 };
 
 const ShopNavigationContext = createContext<ShopNavigation | null>(null);
@@ -33,9 +40,11 @@ const ShopNavigationContext = createContext<ShopNavigation | null>(null);
  */
 export function ShopNavigationProvider({
   filters,
+  scope = SHOP_SCOPE,
   children,
 }: {
   filters: ShopFilters;
+  scope?: ListingScope;
   children: ReactNode;
 }) {
   const router = useRouter();
@@ -45,7 +54,7 @@ export function ShopNavigationProvider({
   function replace(next: ShopFilters) {
     startTransition(() => {
       setOptimistic(next);
-      router.push(shopHref(next), { scroll: false });
+      router.push(scopeHref(scope, next), { scroll: false });
     });
   }
 
@@ -56,6 +65,7 @@ export function ShopNavigationProvider({
         update: (patch) => replace(patchFilters(optimistic, patch)),
         replace,
         pending,
+        scope,
       }}
     >
       {children}

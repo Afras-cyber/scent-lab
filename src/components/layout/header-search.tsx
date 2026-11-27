@@ -1,24 +1,43 @@
+"use client";
+
 import { ChevronDown, Search } from "lucide-react";
 import Form from "next/form";
-import type { FormEventHandler } from "react";
+import { useRef, type KeyboardEvent } from "react";
 
+import { useSearchStore } from "@/features/search/store";
 import { cn } from "@/lib/utils";
 
 type Props = {
   /** Shows the "All Scents" collection picker (desktop header). */
   collections?: { slug: string; name: string }[];
   className?: string;
-  onSubmit?: FormEventHandler<HTMLFormElement>;
+  /** Runs before the search popup opens (the mobile menu closes itself). */
+  onOpenSearch?: () => void;
 };
 
-// Plain GET form to /search, so it works before hydration. next/form turns it
-// into a client-side navigation once JS has loaded.
-export function HeaderSearch({ collections, className, onSubmit }: Props) {
+// Plain GET form to /search, so it works before hydration. Once JS has
+// loaded, a click or the first typed character opens the search popup
+// instead (focus alone doesn't, so tabbing past the field stays possible).
+export function HeaderSearch({ collections, className, onOpenSearch }: Props) {
+  const openSearch = useSearchStore((s) => s.openSearch);
+  const selectRef = useRef<HTMLSelectElement>(null);
+
+  function open(query = "") {
+    onOpenSearch?.();
+    openSearch({ query, collection: selectRef.current?.value });
+  }
+
+  function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    const typed = e.key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey;
+    if (!typed && !["Enter", "ArrowDown"].includes(e.key)) return;
+    e.preventDefault();
+    open(`${e.currentTarget.value}${typed ? e.key : ""}`);
+  }
+
   return (
     <Form
       action="/search"
       role="search"
-      onSubmit={onSubmit}
       className={cn(
         "flex h-12 items-center rounded-full border-2 border-gold bg-white pr-1 text-brand-deep",
         !collections && "pl-4",
@@ -31,6 +50,7 @@ export function HeaderSearch({ collections, className, onSubmit }: Props) {
             Collection
           </label>
           <select
+            ref={selectRef}
             id="search-collection"
             name="collection"
             defaultValue=""
@@ -53,21 +73,34 @@ export function HeaderSearch({ collections, className, onSubmit }: Props) {
       )}
       <input
         aria-label="Search products"
+        aria-haspopup="dialog"
         type="search"
         name="q"
         required
         maxLength={80}
+        autoComplete="off"
         placeholder={
           collections
             ? "Search oud, musk, attar, amber…"
             : "Search oud, musk, attar…"
         }
-        className="h-full min-w-0 flex-1 bg-transparent px-3 text-[15px] outline-none placeholder:text-brand-deep/50"
+        onClick={(e) => open(e.currentTarget.value)}
+        onKeyDown={onKeyDown}
+        onPaste={(e) => {
+          e.preventDefault();
+          open(e.clipboardData.getData("text").slice(0, 80));
+        }}
+        className="h-full min-w-0 flex-1 cursor-text bg-transparent px-3 text-[15px] outline-none placeholder:text-brand-deep/50"
       />
       {collections && (
         <button
           type="submit"
           aria-label="Search"
+          onClick={(e) => {
+            // Submits /search without JS; with JS the popup takes over.
+            e.preventDefault();
+            open(e.currentTarget.form?.q.value);
+          }}
           className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-mid text-white transition-colors hover:bg-brand-deep"
         >
           <Search className="size-5" aria-hidden />

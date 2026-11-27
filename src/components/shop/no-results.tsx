@@ -6,10 +6,16 @@ import { shopConfig } from "@/config";
 import type { ShopFilters } from "@/features/catalog/schemas";
 import { waLink } from "@/lib/whatsapp/link";
 
-import { clearedFilters, shopHref } from "./shop-href";
+import { clearedFilters, scopeHref, type ListingScope } from "./shop-href";
 
 /** Empty state when no product matches the filters. */
-export function NoResults({ filters }: { filters: ShopFilters }) {
+export function NoResults({
+  scope,
+  filters,
+}: {
+  scope: ListingScope;
+  filters: ShopFilters;
+}) {
   const { title, text, whatsappMessage, popularTitle, popularCollections } =
     shopConfig.noResults;
 
@@ -22,7 +28,10 @@ export function NoResults({ filters }: { filters: ShopFilters }) {
       <p className="text-sm text-muted-foreground lg:text-[15px]">{text}</p>
       <div className="mt-2 flex w-full flex-col gap-3">
         <Button asChild size="lg" className="h-13">
-          <Link href={shopHref(clearedFilters(filters))} scroll={false}>
+          <Link
+            href={scopeHref(scope, clearedFilters(filters, scope))}
+            scroll={false}
+          >
             Clear all filters
           </Link>
         </Button>
@@ -42,8 +51,7 @@ export function NoResults({ filters }: { filters: ShopFilters }) {
         {popularCollections.map((c) => (
           <li key={c.slug}>
             <Link
-              href={shopHref({ collection: [c.slug] })}
-              scroll={false}
+              href={`/collections/${c.slug}`}
               className="inline-flex h-10 items-center rounded-full border bg-card px-4 text-sm font-medium text-heading transition-colors hover:bg-muted"
             >
               {c.label}

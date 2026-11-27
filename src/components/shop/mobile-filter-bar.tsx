@@ -12,10 +12,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { countActiveFilters } from "@/features/catalog/schemas";
 
 import { FilterPanel, type FilterOptions } from "./filter-panel";
-import { clearedFilters } from "./shop-href";
+import { clearableCount, clearedFilters } from "./shop-href";
 import { useShopNavigation } from "./shop-navigation";
 import { sortLabel, SortOptions } from "./sort-menu";
 
@@ -81,9 +80,9 @@ export function MobileFilterBar({
   options: FilterOptions;
   total: number;
 }) {
-  const { filters, replace } = useShopNavigation();
+  const { filters, replace, scope } = useShopNavigation();
   const [sortOpen, setSortOpen] = useState(false);
-  const active = countActiveFilters(filters);
+  const active = clearableCount(filters, scope);
 
   return (
     <div className="grid grid-cols-2 gap-3 lg:hidden">
@@ -104,7 +103,7 @@ export function MobileFilterBar({
                 size="lg"
                 className="h-13 bg-card px-6"
                 disabled={active === 0}
-                onClick={() => replace(clearedFilters(filters))}
+                onClick={() => replace(clearedFilters(filters, scope))}
               >
                 Clear all
               </Button>
@@ -125,7 +124,7 @@ export function MobileFilterBar({
           <ArrowUpDown className="size-4" aria-hidden />
           Sort
           <span className="truncate text-xs font-normal text-muted-foreground">
-            {sortLabel(filters.sort)}
+            {sortLabel(filters.sort, scope)}
           </span>
         </SheetTrigger>
         <BottomSheet

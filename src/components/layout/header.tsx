@@ -6,13 +6,40 @@ import { Logo } from "@/components/layout/logo";
 import { MegaMenu } from "@/components/layout/mega-menu";
 import { MobileMenu } from "@/components/layout/mobile-menu";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { featuresConfig, siteConfig } from "@/config";
-import { listCollections } from "@/features/catalog/queries";
+import { SearchDialog } from "@/components/search/search-dialog";
+import {
+  collectionsConfig,
+  featuresConfig,
+  searchConfig,
+  siteConfig,
+} from "@/config";
+import { filterProducts } from "@/features/catalog/filter";
+import { getCatalog, listCollections } from "@/features/catalog/queries";
+import type { ShopFilters } from "@/features/catalog/schemas";
+import { countLabel } from "@/lib/count";
 import { waLink } from "@/lib/whatsapp/link";
 
 export async function Header() {
-  const collections = await listCollections();
+  const [collections, catalog] = await Promise.all([
+    listCollections(),
+    getCatalog(),
+  ]);
   const whatsappHref = waLink();
+  const quickLinks = searchConfig.quickLinks.map((link) => {
+    const { filters } = link;
+    const shopFilters: ShopFilters = {
+      gender: "gender" in filters ? [...filters.gender] : undefined,
+      collection: "collection" in filters ? [...filters.collection] : undefined,
+    };
+    return {
+      label: link.label,
+      href: link.href,
+      count: countLabel(
+        filterProducts(catalog, shopFilters).length,
+        "unit" in link ? link.unit : collectionsConfig.defaultUnit,
+      ),
+    };
+  });
 
   return (
     <header className="sticky top-0 z-40 bg-brand-deep text-brand-foreground">
@@ -65,6 +92,13 @@ export async function Header() {
       <div className="border-t border-white/10 max-lg:hidden">
         <MegaMenu />
       </div>
+
+      <SearchDialog
+        quickLinks={quickLinks}
+        collectionNames={Object.fromEntries(
+          collections.map((c) => [c.slug, c.name]),
+        )}
+      />
     </header>
   );
 }

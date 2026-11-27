@@ -6,16 +6,13 @@ import {
   SectionHeading,
   SectionLink,
 } from "@/components/common/section-heading";
+import { collectionHref } from "@/components/collections/collection-href";
 import { Button } from "@/components/ui/button";
 import { homeConfig } from "@/config";
 import { listCollections } from "@/features/catalog/queries";
 import type { CatalogCollection } from "@/features/catalog/types";
 import { FALLBACK_PRODUCT_IMAGE } from "@/lib/images";
 import { cn } from "@/lib/utils";
-
-function collectionHref(slug: string) {
-  return `/collections/${slug}`;
-}
 
 /** Large dark card for the first collection; desktop only. */
 function FlagshipCard({ collection }: { collection: CatalogCollection }) {

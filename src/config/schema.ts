@@ -104,6 +104,7 @@ export const whatsappConfigSchema = z.object({
     orderPlaced: waMessage, // {orderCode}, {total}
     orderHelp: waMessage, // {orderCode}
     notifyStock: waMessage, // {product}, {url}
+    search: waMessage, // {query}
   }),
 });
 
@@ -319,6 +320,85 @@ export const shopConfigSchema = z.object({
   }),
 });
 
+// A chip that either fills the search field (`query`) or opens a page (`href`).
+const searchChip = z.union([
+  z.object({ label: z.string().min(1), query: z.string().min(1).max(80) }),
+  z.object({ label: z.string().min(1), href }),
+]);
+const countUnit = z.object({
+  one: z.string().min(1),
+  other: z.string().min(1),
+});
+
+export const searchConfigSchema = z.object({
+  placeholder: z.object({
+    desktop: z.string().min(1),
+    mobile: z.string().min(1),
+  }),
+  maxProducts: z.int().min(1).max(10),
+  labels: z.object({
+    recent: z.string().min(1),
+    popular: z.string().min(1),
+    quickLinks: z.string().min(1),
+    perfumes: z.string().min(1),
+    collections: z.string().min(1),
+    notes: z.string().min(1),
+    browse: z.string().min(1),
+    seeAll: z.string().min(1), // {count}
+  }),
+  popularSearches: z.array(searchChip).readonly(),
+  quickLinks: z
+    .array(
+      z.object({
+        label: z.string().min(1),
+        href,
+        // Counted with the shop filter, e.g. "18 perfumes".
+        filters: z.object({
+          gender: z.array(genderEnum).readonly().optional(),
+          collection: z.array(slugRef).readonly().optional(),
+        }),
+        unit: countUnit.optional(),
+      }),
+    )
+    .readonly(),
+  noResults: z.object({
+    title: z.string().min(1), // {query}
+    text: z.string().min(1),
+    suggestions: z.array(searchChip).readonly(),
+    whatsappLabel: z.string().min(1),
+  }),
+  page: z.object({
+    title: z.string().min(1),
+    description: z.string().min(1),
+    eyebrow: z.string().min(1),
+    resultsTitle: z.string().min(1), // {query}
+    emptyTitle: z.string().min(1),
+    emptyText: z.string().min(1),
+    bestMatchLabel: z.string().min(1),
+    popularEyebrow: z.string().min(1),
+    popularTitle: z.string().min(1),
+  }),
+});
+
+export const collectionsConfigSchema = z.object({
+  index: z.object({
+    title: z.string().min(1),
+    description: z.string().min(1),
+    eyebrow: z.string().min(1),
+    heading: z.string().min(1),
+    flagshipEyebrow: z.string().min(1),
+    exploreLabel: z.string().min(1),
+  }),
+  detail: z.object({
+    eyebrow: z.string().min(1),
+    allLabel: z.string().min(1),
+    listingTitle: z.string().min(1), // {name}
+  }),
+  // "22 attars" instead of "22 perfumes" for some collections.
+  units: z.record(slugRef, countUnit),
+  defaultUnit: countUnit,
+});
+
 export type SiteConfig = z.infer<typeof siteConfigSchema>;
 export type CommerceConfig = z.infer<typeof commerceConfigSchema>;
 export type WhatsappConfig = z.infer<typeof whatsappConfigSchema>;
@@ -327,6 +407,8 @@ export type SeoConfig = z.infer<typeof seoConfigSchema>;
 export type FeaturesConfig = z.infer<typeof featuresConfigSchema>;
 export type HomeConfig = z.infer<typeof homeConfigSchema>;
 export type ShopConfig = z.infer<typeof shopConfigSchema>;
+export type SearchConfig = z.infer<typeof searchConfigSchema>;
+export type CollectionsConfig = z.infer<typeof collectionsConfigSchema>;
 export type PaymentMethod = z.infer<typeof paymentMethodSchema>;
 
 // --- Placeholder detection -------------------------------------------------
@@ -374,6 +456,8 @@ type ConfigBundle = {
   features: unknown;
   home: unknown;
   shop: unknown;
+  search: unknown;
+  collections: unknown;
 };
 
 const schemas = {
@@ -385,6 +469,8 @@ const schemas = {
   features: featuresConfigSchema,
   home: homeConfigSchema,
   shop: shopConfigSchema,
+  search: searchConfigSchema,
+  collections: collectionsConfigSchema,
 } as const;
 
 /**

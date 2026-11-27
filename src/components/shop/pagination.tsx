@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { ShopFilters } from "@/features/catalog/schemas";
 import { cn } from "@/lib/utils";
 
-import { shopHref } from "./shop-href";
+import { scopeHref, type ListingScope } from "./shop-href";
 
 /**
  * Page numbers to show: always the first and last, the current page and its
@@ -35,16 +35,18 @@ const itemClass =
   "inline-flex size-11 items-center justify-center rounded-full border bg-card text-sm font-medium text-heading transition-colors";
 
 export function Pagination({
+  scope,
   filters,
   page,
   pageCount,
 }: {
+  scope: ListingScope;
   filters: ShopFilters;
   page: number;
   pageCount: number;
 }) {
   if (pageCount <= 1) return null;
-  const href = (p: number) => shopHref({ ...filters, page: p });
+  const href = (p: number) => scopeHref(scope, { ...filters, page: p });
 
   const arrow = (target: number, label: string, Icon: typeof ChevronLeft) =>
     target < 1 || target > pageCount ? (

@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { cn } from "@/lib/utils";
 
 import { ShopHeading } from "./shop-heading";
@@ -21,11 +23,15 @@ function CardSkeleton() {
   );
 }
 
-/** Loading state for the shop results (design: "Loading skeleton"). */
-export function ShopSkeleton() {
+/** Loading state for a product listing (design: "Loading skeleton"). */
+export function ShopSkeleton({
+  heading = <ShopHeading />,
+}: {
+  heading?: ReactNode;
+}) {
   return (
     <div className="flex flex-col gap-5 lg:gap-6">
-      <ShopHeading />
+      {heading}
       <div
         className="flex animate-pulse flex-col gap-6"
         role="status"

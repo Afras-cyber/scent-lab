@@ -132,6 +132,25 @@ export function catalogSizes(products: readonly ProductCardData[]) {
   );
 }
 
+export type CollectionStats = { count: number; minPrice: number };
+
+/** Product count and lowest card price per collection slug. */
+export function collectionStats(
+  products: readonly ProductCardData[],
+): Map<string, CollectionStats> {
+  const stats = new Map<string, CollectionStats>();
+  for (const p of products) {
+    for (const slug of p.collectionSlugs) {
+      const current = stats.get(slug);
+      stats.set(slug, {
+        count: (current?.count ?? 0) + 1,
+        minPrice: Math.min(current?.minPrice ?? Infinity, p.price),
+      });
+    }
+  }
+  return stats;
+}
+
 export function paginate<T>(items: readonly T[], page = 1, perPage: number) {
   const pageCount = Math.max(1, Math.ceil(items.length / perPage));
   const current = Math.min(Math.max(1, page), pageCount);
@@ -143,11 +162,13 @@ export function paginate<T>(items: readonly T[], page = 1, perPage: number) {
   };
 }
 
-function searchTerms(q: string): string[] {
+/** Lowercase, accent-free search words from a query. */
+export function searchTerms(q: string): string[] {
   return normalize(q).split(/\s+/).filter(Boolean);
 }
 
-function normalize(text: string): string {
+/** Lowercase, strips accents and punctuation; shared by every search matcher. */
+export function normalize(text: string): string {
   return text
     .toLowerCase()
     .normalize("NFKD")

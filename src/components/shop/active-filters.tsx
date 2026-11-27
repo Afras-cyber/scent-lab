@@ -9,8 +9,9 @@ import { cn } from "@/lib/utils";
 import {
   clearedFilters,
   patchFilters,
-  shopHref,
+  scopeHref,
   toggleItem,
+  type ListingScope,
 } from "./shop-href";
 
 type Chip = { key: string; label: string; href: string };
@@ -25,12 +26,13 @@ function priceLabel(min?: number, max?: number) {
 
 /** One removable chip per active filter value, in URL order. */
 export function activeChips(
+  scope: ListingScope,
   filters: ShopFilters,
   names: { collections: Map<string, string>; notes: Map<string, string> },
 ): Chip[] {
   const chips: Chip[] = [];
   const without = (patch: Partial<ShopFilters>) =>
-    shopHref(patchFilters(filters, patch));
+    scopeHref(scope, patchFilters(filters, patch));
   const list = (key: ListFilterKey, label: (v: string) => string) => {
     for (const value of filters[key] ?? []) {
       chips.push({
@@ -73,7 +75,7 @@ export function activeChips(
       href: without({ occasion: undefined }),
     });
   }
-  if (filters.q) {
+  if (filters.q && !scope.keep?.includes("q")) {
     chips.push({
       key: "q",
       label: `“${filters.q}”`,
@@ -85,10 +87,12 @@ export function activeChips(
 
 /** "Active: Men × Under Rs 3,000 × Oud ×  Clear all". */
 export function ActiveFilters({
+  scope,
   chips,
   filters,
   className,
 }: {
+  scope: ListingScope;
   chips: Chip[];
   filters: ShopFilters;
   className?: string;
@@ -115,7 +119,7 @@ export function ActiveFilters({
         ))}
       </ul>
       <Link
-        href={shopHref(clearedFilters(filters))}
+        href={scopeHref(scope, clearedFilters(filters, scope))}
         scroll={false}
         className="ml-1 text-sm font-medium text-heading hover:underline"
       >

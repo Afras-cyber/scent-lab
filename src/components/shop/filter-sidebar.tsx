@@ -2,15 +2,13 @@
 
 import { SlidersHorizontal } from "lucide-react";
 
-import { countActiveFilters } from "@/features/catalog/schemas";
-
 import { FilterPanel, type FilterOptions } from "./filter-panel";
-import { clearedFilters } from "./shop-href";
+import { clearableCount, clearedFilters } from "./shop-href";
 import { useShopNavigation } from "./shop-navigation";
 
 /** Desktop filter card on the left of the grid. */
 export function FilterSidebar({ options }: { options: FilterOptions }) {
-  const { filters, replace } = useShopNavigation();
+  const { filters, replace, scope } = useShopNavigation();
 
   return (
     <aside
@@ -22,10 +20,10 @@ export function FilterSidebar({ options }: { options: FilterOptions }) {
           <SlidersHorizontal className="size-[18px]" aria-hidden />
           Filters
         </h2>
-        {countActiveFilters(filters) > 0 && (
+        {clearableCount(filters, scope) > 0 && (
           <button
             type="button"
-            onClick={() => replace(clearedFilters(filters))}
+            onClick={() => replace(clearedFilters(filters, scope))}
             className="text-sm font-medium text-heading hover:underline"
           >
             Clear all

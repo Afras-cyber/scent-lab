@@ -11,5 +11,6 @@ export const whatsappConfig = {
     orderHelp: "Hello AYAD, I have a question about order {orderCode}.",
     notifyStock:
       "Hello AYAD, please tell me when {product} is back in stock.\n{url}",
+    search: "Hello AYAD, I'm looking for “{query}”. Can you help me find it?",
   },
 } as const satisfies WhatsappConfig;

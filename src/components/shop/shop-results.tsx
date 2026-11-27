@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { ProductCard } from "@/components/product/product-card";
 import { commerceConfig } from "@/config";
 import {
@@ -25,26 +27,42 @@ import { NoResults } from "./no-results";
 import { Pagination } from "./pagination";
 import { QuickFilters } from "./quick-filters";
 import { ShopHeading } from "./shop-heading";
+import { SHOP_SCOPE, withoutLocked, type ListingScope } from "./shop-href";
 import { ResultsArea, ShopNavigationProvider } from "./shop-navigation";
 import { SortDropdown } from "./sort-menu";
 
 const numberFormat = new Intl.NumberFormat("en-LK");
 
 /**
- * Everything on /shop that depends on the URL: counts, filters, the grid and
- * pagination. Filtering runs in memory on the cached catalog.
+ * Everything on a product listing that depends on the URL: counts, filters,
+ * the grid and pagination. Used by /shop, collection pages and /search; the
+ * scope fixes the path and any filters the page locks. Filtering runs in
+ * memory on the cached catalog.
  */
 export async function ShopResults({
   searchParams,
+  scope = SHOP_SCOPE,
+  heading = <ShopHeading />,
+  pills,
 }: {
   searchParams: Promise<SearchParamsRecord>;
+  scope?: ListingScope;
+  /** Left of the count and sort. Defaults to the /shop title. */
+  heading?: ReactNode;
+  /** Row under the heading. Defaults to the /shop quick filters. */
+  pills?: ReactNode;
 }) {
-  const filters = parseShopFilters(await searchParams);
-  const [catalog, notes, collections] = await Promise.all([
+  // Locked filters never come from (or go into) the URL.
+  const filters = withoutLocked(parseShopFilters(await searchParams), scope);
+  const [allProducts, notes, collections] = await Promise.all([
     getCatalog(),
     listNotes(),
     listCollections(),
   ]);
+  // The products this page is about; facets and price bounds come from them.
+  const catalog = scope.locked
+    ? filterProducts(allProducts, scope.locked)
+    : allProducts;
 
   const results = filterProducts(catalog, filters);
   const { items, page, pageCount, total } = paginate(
@@ -63,7 +81,7 @@ export async function ShopResults({
     sizes: catalogSizes(catalog),
     priceBounds: priceBounds(catalog),
   };
-  const chips = activeChips(filters, {
+  const chips = activeChips(scope, filters, {
     collections: new Map(collections.map((c) => [c.slug, c.name])),
     notes: new Map(notes.map((n) => [n.slug, n.name])),
   });
@@ -74,25 +92,24 @@ export async function ShopResults({
   const countLabel = `${numberFormat.format(total)} ${total === 1 ? "perfume" : "perfumes"}`;
 
   return (
-    <ShopNavigationProvider filters={filters}>
+    <ShopNavigationProvider filters={filters} scope={scope}>
       <div className="flex flex-col gap-5 lg:gap-6">
-        <ShopHeading
-          aside={
-            <div className="flex items-center gap-4 max-lg:pb-1.5">
-              <p
-                className="text-sm text-muted-foreground lg:text-[15px]"
-                aria-live="polite"
-              >
-                {countLabel}
-              </p>
-              <div className="hidden lg:block">
-                <SortDropdown />
-              </div>
+        <div className="flex items-end justify-between gap-4">
+          {heading}
+          <div className="flex shrink-0 items-center gap-4 max-lg:pb-1.5">
+            <p
+              className="text-sm text-muted-foreground lg:text-[15px]"
+              aria-live="polite"
+            >
+              {countLabel}
+            </p>
+            <div className="hidden lg:block">
+              <SortDropdown />
             </div>
-          }
-        />
+          </div>
+        </div>
 
-        <QuickFilters filters={filters} />
+        {pills === undefined ? <QuickFilters filters={filters} /> : pills}
         <MobileFilterBar options={options} total={total} />
 
         <div className="grid gap-6 lg:grid-cols-[288px_1fr]">
@@ -101,6 +118,7 @@ export async function ShopResults({
           <div className="flex min-w-0 flex-col gap-5">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <ActiveFilters
+                scope={scope}
                 chips={chips}
                 filters={filters}
                 className="lg:order-2 lg:justify-end"
@@ -122,12 +140,17 @@ export async function ShopResults({
                   ))}
                 </ul>
               ) : (
-                <NoResults filters={filters} />
+                <NoResults scope={scope} filters={filters} />
               )}
             </ResultsArea>
 
             <div className="pt-4">
-              <Pagination filters={filters} page={page} pageCount={pageCount} />
+              <Pagination
+                scope={scope}
+                filters={filters}
+                page={page}
+                pageCount={pageCount}
+              />
             </div>
           </div>
         </div>

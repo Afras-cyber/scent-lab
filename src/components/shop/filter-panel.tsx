@@ -34,7 +34,7 @@ export function FilterPanel({
   options: FilterOptions;
   variant: "sidebar" | "sheet";
 }) {
-  const { filters, update } = useShopNavigation();
+  const { filters, update, scope } = useShopNavigation();
   const { counts, notes, sizes, priceBounds } = options;
   const sheet = variant === "sheet";
   const priceSelected =
@@ -75,22 +75,24 @@ export function FilterPanel({
         <PriceRange bounds={priceBounds} />
       </FilterSection>
 
-      <FilterSection
-        title="Type"
-        selected={
-          filters.collection?.filter((c) =>
-            typeOptions.some((t) => t.value === c),
-          ).length
-        }
-        showCount={sheet}
-      >
-        <OptionList
-          sheet={sheet}
-          options={typeOptions}
-          selected={filters.collection ?? []}
-          onToggle={(v) => update(toggleItem(filters, "collection", v))}
-        />
-      </FilterSection>
+      {!scope.hideType && (
+        <FilterSection
+          title="Type"
+          selected={
+            filters.collection?.filter((c) =>
+              typeOptions.some((t) => t.value === c),
+            ).length
+          }
+          showCount={sheet}
+        >
+          <OptionList
+            sheet={sheet}
+            options={typeOptions}
+            selected={filters.collection ?? []}
+            onToggle={(v) => update(toggleItem(filters, "collection", v))}
+          />
+        </FilterSection>
+      )}
 
       {notes.length > 0 && (
         <FilterSection

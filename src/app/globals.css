@@ -33,6 +33,8 @@
   --brand-mid: #243533;
   --brand-foreground: #f6f4ee;
   --gold: #bda23d;
+  /* Gold for small text on light surfaces (#bda23d is too faint on white). */
+  --gold-ink: #85691b;
   --whatsapp: #16a34a;
   --whatsapp-soft: #e8f8ee;
 
@@ -57,6 +59,7 @@
   --input: #243533;
   --destructive: #f97066;
   --destructive-foreground: #081b1a;
+  --gold-ink: #d4bb5c;
 }
 
 @theme inline {
@@ -85,6 +88,7 @@
   --color-brand-mid: var(--brand-mid);
   --color-brand-foreground: var(--brand-foreground);
   --color-gold: var(--gold);
+  --color-gold-ink: var(--gold-ink);
   --color-whatsapp: var(--whatsapp);
   --color-whatsapp-soft: var(--whatsapp-soft);
 

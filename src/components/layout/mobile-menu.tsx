@@ -22,6 +22,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { featuresConfig, navigationConfig, siteConfig } from "@/config";
+import { useSearchStore } from "@/features/search/store";
 
 type Props = { whatsappHref: string };
 
@@ -44,6 +45,10 @@ export function MobileMenu({ whatsappHref }: Props) {
       <SheetContent
         side="left"
         className="max-w-none px-6 pt-5 pb-8 sm:max-w-sm"
+        // Opening search closes the menu; keep focus in the search popup.
+        onCloseAutoFocus={(e) => {
+          if (useSearchStore.getState().open) e.preventDefault();
+        }}
       >
         <SheetTitle className="sr-only">Menu</SheetTitle>
         <SheetDescription className="sr-only">
@@ -56,7 +61,7 @@ export function MobileMenu({ whatsappHref }: Props) {
 
         <HeaderSearch
           className="mt-5 border border-input"
-          onSubmit={() => setOpen(false)}
+          onOpenSearch={() => setOpen(false)}
         />
 
         <nav aria-label="Main" className="mt-3">
